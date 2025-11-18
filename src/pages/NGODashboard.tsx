@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Users, Target, Calendar, TrendingUp, MessageSquare, DollarSign, Plus, FileText, Eye, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Building2, Users, Target, Calendar, TrendingUp, MessageSquare, DollarSign, Plus, FileText, Eye, CheckCircle, Clock, XCircle, Crown, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { collection, query, where, getDocs, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import RemindersPanel from '../components/RemindersPanel';
+import { CompactUpgradePrompt } from '../components/Subscription/UpgradePrompt';
 import { ProjectSubmission, EventSubmission, ProjectApplicationEntry, EventRegistrationEntry } from '../types/submissions';
 
 interface NGOStats {
@@ -19,6 +21,7 @@ interface NGOStats {
 
 const NGODashboard = () => {
   const { currentUser, userData } = useAuth();
+  const { subscription, usage, planConfig, getQuotaAlerts } = useSubscription();
   const { currentTheme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<NGOStats>({
@@ -247,6 +250,110 @@ const NGODashboard = () => {
           </h1>
           <p className="text-lg text-gray-600">Manage your projects, volunteers, and impact</p>
         </div>
+
+        {/* Subscription Status */}
+        {subscription && (
+          <div className="mb-6">
+            {planConfig.id === 'free' && getQuotaAlerts().length > 0 && (
+              <CompactUpgradePrompt 
+                message="You're approaching your plan limits. Upgrade for unlimited access!"
+                className="mb-4"
+              />
+            )}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${
+                    planConfig.id === 'premium' 
+                      ? 'bg-purple-100 dark:bg-purple-900/20' 
+                      : 'bg-blue-100 dark:bg-blue-900/20'
+                  }`}>
+                    <Crown className={`w-6 h-6 ${
+                      planConfig.id === 'premium' ? 'text-purple-600' : 'text-blue-600'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {planConfig.displayName} Plan
+                    </h3>
+                    {usage && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {usage.projectsCreated} project{usage.projectsCreated !== 1 ? 's' : ''} · {usage.eventsCreated} event{usage.eventsCreated !== 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {planConfig.id === 'free' && (
+                    <Link
+                      to="/upgrade"
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
+                    >
+                      Upgrade
+                    </Link>
+                  )}
+                  <Link
+                    to="/upgrade"
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
+                    Manage
+                  </Link>
+                </div>
+              </div>
+
+              {/* Usage bars for free plan */}
+              {planConfig.id === 'free' && usage && (
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-600 dark:text-gray-400">Projects</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {usage.projectsCreated} / {planConfig.limits.maxProjects}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${
+                          usage.projectsCreated >= planConfig.limits.maxProjects
+                            ? 'bg-red-500'
+                            : usage.projectsCreated >= planConfig.limits.maxProjects * 0.8
+                            ? 'bg-yellow-500'
+                            : 'bg-green-500'
+                        }`}
+                        style={{
+                          width: `${Math.min((usage.projectsCreated / planConfig.limits.maxProjects) * 100, 100)}%`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-600 dark:text-gray-400">Events</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {usage.eventsCreated} / {planConfig.limits.maxProjects * planConfig.limits.maxEventsPerProject}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${
+                          usage.eventsCreated >= (planConfig.limits.maxProjects * planConfig.limits.maxEventsPerProject)
+                            ? 'bg-red-500'
+                            : usage.eventsCreated >= (planConfig.limits.maxProjects * planConfig.limits.maxEventsPerProject * 0.8)
+                            ? 'bg-yellow-500'
+                            : 'bg-green-500'
+                        }`}
+                        style={{
+                          width: `${Math.min((usage.eventsCreated / (planConfig.limits.maxProjects * planConfig.limits.maxEventsPerProject)) * 100, 100)}%`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
