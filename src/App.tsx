@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AdminProvider } from './contexts/AdminContext';
@@ -40,16 +40,25 @@ import { useActivityLogger } from './hooks/useActivityLogger';
 import { setupMigrationTools } from './utils/runMigration';
 import { initScrollReveal } from './utils/scrollReveal';
 import { initAutoLearning } from './services/autoLearnService';
+import { initGA4, trackPageView } from './utils/googleAnalytics';
 
 const AppContent = () => {
   useActivityLogger();
+  const location = useLocation();
 
   useEffect(() => {
     setupMigrationTools();
     initScrollReveal();
     // Initialize smart KB auto-learning in background
     initAutoLearning();
+    // Initialize Google Analytics 4
+    initGA4();
   }, []);
+
+  // Track page views on route change
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen app-bg">

@@ -2,8 +2,10 @@
 
 import type { AnalyticsEvent } from '../types/seo';
 
-// GA4 Measurement ID (replace with actual ID from Google Analytics)
-export const GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+// GA4 Measurement ID
+// To use your own GA4 property, create one at https://analytics.google.com
+// and replace this with your Measurement ID (format: G-XXXXXXXXXX)
+export const GA4_MEASUREMENT_ID = import.meta.env.VITE_GA4_MEASUREMENT_ID || 'G-XXXXXXXXXX';
 
 // Initialize Google Analytics 4
 export const initGA4 = (measurementId: string = GA4_MEASUREMENT_ID): void => {
