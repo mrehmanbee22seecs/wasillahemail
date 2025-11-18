@@ -480,6 +480,22 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // === SUBSCRIPTIONS & BILLING ===
+    match /subscriptions/{userId} {
+      // Users can read their own subscription data
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == userId || isAdmin());
+      // Users can create their own subscription (auto-initialized)
+      allow create: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        request.resource.data.userId == userId;
+      // Users can update their own subscription (plan changes)
+      allow update: if isAuthenticated() && 
+        (request.auth.uid == userId || isAdmin());
+      // Only admins can delete subscriptions
+      allow delete: if isAdmin();
+    }
+
     match /{document=**} { allow read, write: if false; }
   }
 }
