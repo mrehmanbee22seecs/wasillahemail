@@ -392,6 +392,94 @@ service cloud.firestore {
         request.resource.data.userId == request.auth.uid;
     }
 
+    // === GAMIFICATION: POINTS, BADGES, ACHIEVEMENTS ===
+    match /user_points/{entryId} {
+      // Users can read their own point history; admins can read all
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      // Users can create entries for themselves (client-side awarding)
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      // Only admins can update/delete history
+      allow update, delete: if isAdmin();
+    }
+
+    match /user_points_stats/{userId} {
+      // Leaderboards are public; anyone can read aggregate stats
+      allow read: if true;
+      // Users can create/update their own stats; admins can manage all
+      allow create, update: if isAuthenticated() &&
+        (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /user_badges/{badgeId} {
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /user_achievements/{achId} {
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // === REVIEWS & FEEDBACK ===
+    match /reviews/{reviewId} {
+      // Anyone can read reviews to build trust for projects/NGOs
+      allow read: if true;
+
+      // Authenticated users can create reviews in their own name
+      allow create: if isAuthenticated() &&
+        request.resource.data.createdById == request.auth.uid &&
+        request.resource.data.rating >= 1 &&
+        request.resource.data.rating <= 5;
+
+      // Owners can update/delete their own reviews; admins can moderate all
+      allow update, delete: if isAuthenticated() &&
+        (request.auth.uid == resource.data.createdById || isAdmin());
+    }
+
+    // === SOCIAL: LIKES, COMMENTS, FOLLOWS, COMMUNITY ===
+    match /social_likes/{likeId} {
+      allow read: if true;
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+      // No updates; delete/recreate if needed
+      allow update: if false;
+    }
+
+    match /social_comments/{commentId} {
+      // Public read to encourage community
+      allow read: if true;
+      // Authenticated users can create comments in their own name
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      // Owners can edit/delete their own comments; admins can moderate all
+      allow update, delete: if isAuthenticated() &&
+        (request.auth.uid == resource.data.userId || isAdmin());
+    }
+
+    match /user_follows/{followId} {
+      // Followers can see their own relations; admins can see all; for now allow authenticated read
+      allow read: if isAuthenticated();
+      // Create follow relation where followerId is the current user
+      allow create: if isAuthenticated() &&
+        request.resource.data.followerId == request.auth.uid;
+      // Unfollow: follower or admin can delete
+      allow delete: if isAuthenticated() &&
+        (request.auth.uid == resource.data.followerId || isAdmin());
+      // No updates
+      allow update: if false;
+    }
+
     match /{document=**} { allow read, write: if false; }
   }
 }

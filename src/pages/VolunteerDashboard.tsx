@@ -11,6 +11,7 @@ import PersonalNotes, { Note } from '../components/Dashboard/PersonalNotes';
 import RemindersPanel from '../components/RemindersPanel';
 import { ProjectSubmission, EventSubmission } from '../types/submissions';
 import TaskList from '../components/Tasks/TaskList';
+import ImpactDashboard from '../components/Gamification/ImpactDashboard';
 
 interface UserStats {
   projectsJoined: number;
@@ -372,6 +373,8 @@ const VolunteerDashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-8">
+            {/* Impact & Gamification */}
+            <ImpactDashboard />
             {/* Quick Actions */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-bold text-logo-navy mb-4">Quick Actions</h3>

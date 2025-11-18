@@ -10,6 +10,10 @@ import ProfileHeader from '../components/NGO/ProfileHeader';
 import ProjectsList from '../components/NGO/ProjectsList';
 import ImpactDisplay from '../components/NGO/ImpactDisplay';
 import { Calendar } from 'lucide-react';
+import { useReviews } from '../hooks/useReviews';
+import RatingDisplay from '../components/Reviews/RatingDisplay';
+import ReviewForm from '../components/Reviews/ReviewForm';
+import ReviewList from '../components/Reviews/ReviewList';
 
 const buildNGOProfile = (
   user: UserProfile,
@@ -72,6 +76,16 @@ const NGOPersonal: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const effectiveUid = ngoId || currentUser?.uid || null;
+
+  const {
+    reviews,
+    summary: reviewSummary,
+    loading: reviewsLoading,
+    submitting: reviewSubmitting,
+    error: reviewsError,
+    hasReviewed,
+    submit: submitReview,
+  } = useReviews('ngo', effectiveUid || null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -224,6 +238,43 @@ const NGOPersonal: React.FC = () => {
                   ))}
                 </div>
               )}
+            </section>
+
+            {/* Reviews & Feedback */}
+            <section className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-logo-navy/10 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg sm:text-xl font-modern-display text-logo-navy font-bold">
+                  Reviews &amp; Testimonials
+                </h2>
+                {reviewSummary && reviewSummary.totalReviews > 0 && (
+                  <RatingDisplay
+                    rating={reviewSummary.averageRating}
+                    totalReviews={reviewSummary.totalReviews}
+                    size="sm"
+                    showValue
+                  />
+                )}
+              </div>
+
+              <ReviewForm
+                submitting={reviewSubmitting}
+                onSubmit={async ({ rating, comment }) =>
+                  submitReview({ rating, comment })
+                }
+                disabledReason={
+                  !currentUser
+                    ? 'Please sign in to share your experience with this NGO.'
+                    : hasReviewed
+                    ? 'You have already submitted a review for this NGO.'
+                    : null
+                }
+              />
+
+              <ReviewList
+                reviews={reviews}
+                loading={reviewsLoading}
+                error={reviewsError}
+              />
             </section>
           </div>
 

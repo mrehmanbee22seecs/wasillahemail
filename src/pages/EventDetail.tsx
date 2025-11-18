@@ -6,6 +6,9 @@ import { db } from '../config/firebase';
 import { doc, getDoc, addDoc, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { EventSubmission, ProjectSubmission } from '../types/submissions';
 import { useAuth } from '../contexts/AuthContext';
+import Likes from '../components/Social/Likes';
+import ShareButton from '../components/Social/ShareButton';
+import Comments from '../components/Social/Comments';
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -563,8 +566,13 @@ const EventDetail = () => {
                 </div>
               </div>
 
-              <h1 className="text-5xl font-luxury-display text-black mb-6">{displayEvent.title}</h1>
-              
+              <h1 className="text-5xl font-luxury-display text-black mb-4">{displayEvent.title}</h1>
+
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <Likes targetType="event" targetId={id || null} />
+                <ShareButton variant="button" />
+              </div>
+
               {displayEvent.affiliation && displayEvent.affiliation.name && (
                 <div className="mb-6 p-4 bg-cream-elegant border-l-4 border-vibrant-orange rounded-r-luxury">
                   <div className="flex items-center">
@@ -953,6 +961,17 @@ const EventDetail = () => {
           </div>
         </div>
       </section>
+
+      {/* Social Comments */}
+      {id && (
+        <section className="py-12 bg-cream-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="luxury-card bg-cream-white p-6 sm:p-8">
+              <Comments targetType="event" targetId={id} />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Event Organizers Section */}
       {displayEvent && displayEvent.heads && displayEvent.heads.length > 0 && (

@@ -12,6 +12,7 @@ import { useMagneticEffect } from '../hooks/useMagneticEffect';
 import { getRoleIcon, getRoleName, ROLE_INFO } from '../utils/roleInfo';
 import { UserRole } from '../types/user';
 import OnboardingWizard from '../components/OnboardingWizard';
+import ImpactDashboard from '../components/Gamification/ImpactDashboard';
 import VolunteerDashboard from './VolunteerDashboard';
 import StudentDashboard from './StudentDashboard';
 import NGODashboard from './NGODashboard';
@@ -704,6 +705,8 @@ const Dashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-8">
+            {/* Impact & Points */}
+            <ImpactDashboard />
             {/* Upcoming Events */}
             <div className="luxury-card bg-white p-6">
               <div className="flex items-center justify-between mb-4">

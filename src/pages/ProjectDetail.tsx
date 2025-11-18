@@ -8,6 +8,13 @@ import { ProjectSubmission, EventSubmission } from '../types/submissions';
 import { useAuth } from '../contexts/AuthContext';
 import TaskManager from '../components/Tasks/TaskManager';
 import ProjectChat from '../components/Chat/ProjectChat';
+import Likes from '../components/Social/Likes';
+import ShareButton from '../components/Social/ShareButton';
+import Comments from '../components/Social/Comments';
+import { useReviews } from '../hooks/useReviews';
+import ReviewForm from '../components/Reviews/ReviewForm';
+import ReviewList from '../components/Reviews/ReviewList';
+import RatingDisplay from '../components/Reviews/RatingDisplay';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -43,6 +50,16 @@ const ProjectDetail = () => {
     emergencyContactRelation: '',
     whatsappConsent: false,
   });
+
+  const {
+    reviews,
+    summary: reviewSummary,
+    loading: reviewsLoading,
+    submitting: reviewSubmitting,
+    error: reviewsError,
+    hasReviewed,
+    submit: submitReview,
+  } = useReviews('project', id || null);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -579,8 +596,13 @@ const ProjectDetail = () => {
                 </span>
               </div>
 
-              <h1 className="text-5xl font-luxury-display text-black mb-6">{displayProject.title}</h1>
-              
+              <h1 className="text-5xl font-luxury-display text-black mb-4">{displayProject.title}</h1>
+
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <Likes targetType="project" targetId={id || null} />
+                <ShareButton variant="button" />
+              </div>
+
               {displayProject.affiliation && displayProject.affiliation.name && (
                 <div className="mb-6 p-4 bg-cream-elegant border-l-4 border-vibrant-orange rounded-r-luxury">
                   <div className="flex items-center">
@@ -990,6 +1012,54 @@ const ProjectDetail = () => {
               {/* Project Chat (NGO + volunteers) */}
               {id && (
                 <ProjectChat projectId={id} projectTitle={displayProject.title} />
+              )}
+
+              {/* Project Comments */}
+              {id && (
+                <div className="mt-10">
+                  <Comments targetType="project" targetId={id} />
+                </div>
+              )}
+
+              {/* Project Reviews */}
+              {id && (
+                <div className="mt-10 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-2xl font-luxury-heading text-black">
+                      Reviews &amp; Feedback
+                    </h3>
+                    {reviewSummary && reviewSummary.totalReviews > 0 && (
+                      <RatingDisplay
+                        rating={reviewSummary.averageRating}
+                        totalReviews={reviewSummary.totalReviews}
+                        size="md"
+                        showValue
+                      />
+                    )}
+                  </div>
+
+                  <div className="luxury-card bg-cream-white p-5 space-y-4">
+                    <ReviewForm
+                      submitting={reviewSubmitting}
+                      onSubmit={async ({ rating, comment }) =>
+                        submitReview({ rating, comment })
+                      }
+                      disabledReason={
+                        !currentUser
+                          ? 'Please sign in to share your experience.'
+                          : hasReviewed
+                          ? 'You have already submitted a review for this project.'
+                          : null
+                      }
+                    />
+
+                    <ReviewList
+                      reviews={reviews}
+                      loading={reviewsLoading}
+                      error={reviewsError}
+                    />
+                  </div>
+                </div>
               )}
             </div>
           </div>
