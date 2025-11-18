@@ -20,6 +20,7 @@ import Reminders from './pages/Reminders';
 import AdminSetup from './pages/AdminSetup';
 import AdminKbManager from './pages/AdminKbManager';
 import MyApplications from './pages/MyApplications';
+import NGOPersonal from './pages/NGOPersonal';
 import ChatWidget from './components/ChatWidget';
 import DonationWidget from './components/DonationWidget';
 import AdminToggle from './components/AdminToggle';
@@ -59,6 +60,8 @@ const AppContent = () => {
           <Route path="/my-applications" element={<MyApplications />} />
           <Route path="/admin-setup" element={<AdminSetup />} />
           <Route path="/admin/kb-manager" element={<AdminKbManager />} />
+          <Route path="/ngo/profile" element={<NGOPersonal />} />
+          <Route path="/ngo/:ngoId" element={<NGOPersonal />} />
         </Routes>
       </main>
       <EditableFooter />

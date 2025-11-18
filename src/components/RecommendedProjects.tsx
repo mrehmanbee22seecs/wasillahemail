@@ -18,6 +18,8 @@ import {
 } from '../services/recommendationService';
 import ProjectCard from './ProjectCard';
 import { useAuth } from '../contexts/AuthContext';
+import { useMatching } from '../hooks/useMatching';
+import MatchCard from './Matching/MatchCard';
 
 interface RecommendedProjectsProps {
   projects: ProjectSubmission[];
@@ -39,6 +41,7 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
   onProjectClick,
 }) => {
   const { currentUser, userData } = useAuth();
+  const { matches, loading: matchingLoading } = useMatching(projects);
   const [recommendedProjects, setRecommendedProjects] = useState<RecommendationScore[]>([]);
   const [similarProjects, setSimilarProjects] = useState<ProjectSubmission[]>([]);
   const [popularProjects, setPopularProjects] = useState<ProjectSubmission[]>([]);
@@ -186,7 +189,7 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
   const projectsToDisplay = getProjectsToDisplay();
   const Icon = getIcon();
 
-  if (loading) {
+  if (loading || (variant === 'recommended' && matchingLoading)) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-vibrant-orange mx-auto mb-4"></div>
@@ -195,7 +198,7 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
     );
   }
 
-  if (projectsToDisplay.length === 0) {
+  if (projectsToDisplay.length === 0 && !(variant === 'recommended' && matches.length > 0)) {
     return (
       <div className="luxury-card bg-white p-8 text-center">
         <Icon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -227,17 +230,25 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
       </div>
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projectsToDisplay.map((project) => (
-          <ProjectCard
-            key={project.id}
-            project={project}
-            matchScore={project.matchScore}
-            showMatchScore={showMatchScore && project.matchScore !== undefined}
-            variant="default"
-          />
-        ))}
-      </div>
+      {variant === 'recommended' && matches.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {matches.slice(0, limit).map((match) => (
+            <MatchCard key={match.project.id} match={match} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projectsToDisplay.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              matchScore={project.matchScore}
+              showMatchScore={showMatchScore && project.matchScore !== undefined}
+              variant="default"
+            />
+          ))}
+        </div>
+      )}
 
       {/* Match Score Explanation (for recommended variant) */}
       {variant === 'recommended' && showMatchScore && recommendedProjects.length > 0 && (

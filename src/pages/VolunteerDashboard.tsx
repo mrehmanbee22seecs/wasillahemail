@@ -10,6 +10,7 @@ import TaskChecklist, { Task } from '../components/Dashboard/TaskChecklist';
 import PersonalNotes, { Note } from '../components/Dashboard/PersonalNotes';
 import RemindersPanel from '../components/RemindersPanel';
 import { ProjectSubmission, EventSubmission } from '../types/submissions';
+import TaskList from '../components/Tasks/TaskList';
 
 interface UserStats {
   projectsJoined: number;
@@ -464,6 +465,12 @@ const VolunteerDashboard = () => {
               ) : (
                 <p className="text-sm text-gray-600 text-center py-4">No recommendations yet</p>
               )}
+            </div>
+
+            {/* My Assigned Tasks (from project task system) */}
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h3 className="text-lg font-bold text-logo-navy mb-4">My Assigned Project Tasks</h3>
+              <TaskList personal />
             </div>
 
             {/* My Reminders */}

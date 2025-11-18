@@ -6,6 +6,8 @@ import { db } from '../config/firebase';
 import { doc, getDoc, addDoc, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { ProjectSubmission, EventSubmission } from '../types/submissions';
 import { useAuth } from '../contexts/AuthContext';
+import TaskManager from '../components/Tasks/TaskManager';
+import ProjectChat from '../components/Chat/ProjectChat';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -346,6 +348,7 @@ const ProjectDetail = () => {
   const staticProject = staticProjects[id as keyof typeof staticProjects];
   const displayProject = project || staticProject;
   const canAddEventToThisProject = !!project && !!currentUser && (isAdmin || project.submittedBy === currentUser.uid);
+  const canManageTasksForProject = canAddEventToThisProject;
 
   useEffect(() => {
     const fetchRelatedEvents = async () => {
@@ -979,6 +982,14 @@ const ProjectDetail = () => {
                   ))}
                 </ul>
               </div>
+              )}
+
+              {/* Project Task Management (NGO/Admin only) */}
+              {canManageTasksForProject && id && <TaskManager projectId={id} />}
+
+              {/* Project Chat (NGO + volunteers) */}
+              {id && (
+                <ProjectChat projectId={id} projectTitle={displayProject.title} />
               )}
             </div>
           </div>

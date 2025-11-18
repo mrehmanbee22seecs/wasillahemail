@@ -39,6 +39,7 @@ const formatResponse: any = kbMatcher?.formatResponse;
 import { getEnhancedKB } from '../services/localKbService';
 // Smart KB with auto-learning
 import { getSmartKB } from '../services/autoLearnService';
+import { ProjectChatMessage, subscribeToProjectMessages, subscribeToTyping, setTypingState, sendProjectMessage } from '../services/chatService';
 
 // Legacy imports
 let findBestMatch: any = null;
@@ -539,3 +540,73 @@ export function useChat(userId: string | null, chatId?: string) {
     setCurrentChatId,
   };
 }
+
+// Project-based chat hook (for project rooms, NGO-volunteer communication)
+export function useProjectChat(projectId: string | null, currentUser: { uid: string; displayName?: string | null; email?: string | null } | null) {
+  const [messages, setMessages] = useState<ProjectChatMessage[]>([]);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!projectId) {
+      setMessages([]);
+      setTypingUsers([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubMessages = subscribeToProjectMessages(projectId, (msgs) => {
+      setMessages(msgs);
+      setLoading(false);
+    });
+    const unsubTyping = subscribeToTyping(projectId, (states) => {
+      setTypingUsers(states.map((s) => s.userName));
+    });
+
+    return () => {
+      unsubMessages();
+      unsubTyping();
+    };
+  }, [projectId]);
+
+  const send = useCallback(
+    async (text: string, attachment?: { url: string; type: 'image' | 'file'; name?: string }) => {
+      if (!projectId || !currentUser) return;
+      await sendProjectMessage({
+        projectId,
+        text,
+        senderId: currentUser.uid,
+        senderName: currentUser.displayName || currentUser.email || 'User',
+        attachmentUrl: attachment?.url,
+        attachmentType: attachment?.type,
+        attachmentName: attachment?.name,
+      });
+    },
+    [projectId, currentUser]
+  );
+
+  const setTyping = useCallback(
+    async (isTyping: boolean) => {
+      if (!projectId || !currentUser) return;
+      await setTypingState(
+        projectId,
+        currentUser.uid,
+        currentUser.displayName || currentUser.email || 'User',
+        isTyping
+      );
+    },
+    [projectId, currentUser]
+  );
+
+  return {
+    messages,
+    typingUsers,
+    loading,
+    error,
+    send,
+    setTyping,
+  };
+}
+
