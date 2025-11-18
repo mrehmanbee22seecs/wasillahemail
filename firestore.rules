@@ -496,6 +496,44 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // === DONATIONS & FUNDRAISING ===
+    match /donations/{donationId} {
+      // Anyone can create a donation
+      allow create: if true;
+      // Users can read their own donations, NGOs can read donations to them
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == resource.data.donorId ||
+         request.auth.uid == resource.data.targetNgoId ||
+         isAdmin());
+      // Only admins can update donation status
+      allow update: if isAdmin();
+      // Only admins can delete donations
+      allow delete: if isAdmin();
+    }
+
+    match /donation_goals/{goalId} {
+      // Anyone can read active goals
+      allow read: if resource.data.isActive == true || isAuthenticated();
+      // NGOs can create goals for themselves
+      allow create: if isAuthenticated() &&
+        request.resource.data.ngoId == request.auth.uid;
+      // NGO owners and admins can update their goals
+      allow update: if isAuthenticated() &&
+        (request.auth.uid == resource.data.ngoId || isAdmin());
+      // Only admins can delete goals
+      allow delete: if isAdmin();
+    }
+
+    match /donor_profiles/{userId} {
+      // Users can read their own profile
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == userId || isAdmin());
+      // System can create/update profiles
+      allow create, update: if isAuthenticated();
+      // Only admins can delete profiles
+      allow delete: if isAdmin();
+    }
+
     match /{document=**} { allow read, write: if false; }
   }
 }
