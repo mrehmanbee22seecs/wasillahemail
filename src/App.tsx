@@ -26,6 +26,7 @@ import UserProfilePage from './pages/UserProfile';
 import Upgrade from './pages/Upgrade';
 import DonationManagement from './pages/DonationManagement';
 import MyDonations from './pages/MyDonations';
+import Analytics from './pages/Analytics';
 import ChatWidget from './components/ChatWidget';
 import DonationWidget from './components/DonationWidget';
 import AdminToggle from './components/AdminToggle';
@@ -71,6 +72,7 @@ const AppContent = () => {
           <Route path="/upgrade" element={<Upgrade />} />
           <Route path="/donations/manage" element={<DonationManagement />} />
           <Route path="/donations/my" element={<MyDonations />} />
+          <Route path="/analytics" element={<Analytics />} />
         </Routes>
       </main>
       <EditableFooter />
