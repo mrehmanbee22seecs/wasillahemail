@@ -24,6 +24,8 @@ import MyApplications from './pages/MyApplications';
 import NGOPersonal from './pages/NGOPersonal';
 import UserProfilePage from './pages/UserProfile';
 import Upgrade from './pages/Upgrade';
+import DonationManagement from './pages/DonationManagement';
+import MyDonations from './pages/MyDonations';
 import ChatWidget from './components/ChatWidget';
 import DonationWidget from './components/DonationWidget';
 import AdminToggle from './components/AdminToggle';
@@ -67,6 +69,8 @@ const AppContent = () => {
           <Route path="/ngo/:ngoId" element={<NGOPersonal />} />
           <Route path="/u/:userId" element={<UserProfilePage />} />
           <Route path="/upgrade" element={<Upgrade />} />
+          <Route path="/donations/manage" element={<DonationManagement />} />
+          <Route path="/donations/my" element={<MyDonations />} />
         </Routes>
       </main>
       <EditableFooter />
