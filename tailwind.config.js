@@ -36,6 +36,7 @@ export default {
         'luxury-body': ['Inter', 'sans-serif'],
         'luxury-medium': ['Inter', 'sans-serif'],
         'arabic': ['Amiri', 'serif'],
+        'urdu': ['Noto Nastaliq Urdu', 'serif'],
       },
       animation: {
         'cinematic-fade': 'cinematic-fade-in 1.2s ease-out forwards',

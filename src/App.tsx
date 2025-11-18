@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AdminProvider } from './contexts/AdminContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import EditableHeader from './components/EditableHeader';
 import EditableFooter from './components/EditableFooter';
@@ -27,6 +28,7 @@ import Upgrade from './pages/Upgrade';
 import DonationManagement from './pages/DonationManagement';
 import MyDonations from './pages/MyDonations';
 import Analytics from './pages/Analytics';
+import TranslationEditor from './components/Admin/TranslationEditor';
 import ChatWidget from './components/ChatWidget';
 import DonationWidget from './components/DonationWidget';
 import AdminToggle from './components/AdminToggle';
@@ -76,6 +78,7 @@ const AppContent = () => {
           <Route path="/donations/manage" element={<DonationManagement />} />
           <Route path="/donations/my" element={<MyDonations />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/admin/translations" element={<TranslationEditor />} />
         </Routes>
       </main>
       <EditableFooter />
@@ -93,15 +96,17 @@ function App() {
   return (
     <AuthProvider>
       <AdminProvider>
-        <SubscriptionProvider>
-          <ThemeProvider>
-            <Router>
-              <ProtectedRoute>
-                <AppContent />
-              </ProtectedRoute>
-            </Router>
-          </ThemeProvider>
-        </SubscriptionProvider>
+        <LanguageProvider>
+          <SubscriptionProvider>
+            <ThemeProvider>
+              <Router>
+                <ProtectedRoute>
+                  <AppContent />
+                </ProtectedRoute>
+              </Router>
+            </ThemeProvider>
+          </SubscriptionProvider>
+        </LanguageProvider>
       </AdminProvider>
     </AuthProvider>
   );
