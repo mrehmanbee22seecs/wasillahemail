@@ -5,6 +5,7 @@ functions/node_modules/
 # Build outputs
 dist/
 build/
+functions/lib/
 
 # Firebase
 .firebase/
@@ -49,3 +50,7 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Package locks (optional - remove if you want to commit)
+package-lock.json
+functions/package-lock.json

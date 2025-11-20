@@ -45,7 +45,8 @@ const db = admin.firestore();
 // List NGOs with pagination and filtering
 const listNGOs = async (req, res) => {
     try {
-        const { page = 1, perPage = 20, status, verified, location } = (0, apiHelpers_1.sanitizeQueryParams)(req.query);
+        const { page, perPage } = (0, apiHelpers_1.getPaginationParams)(req.query);
+        const { status, verified, location } = req.query;
         let query = db.collection('ngos').orderBy('createdAt', 'desc');
         // Apply filters
         if (status) {
@@ -58,19 +59,19 @@ const listNGOs = async (req, res) => {
             query = query.where('location', '==', location);
         }
         // Apply pagination
-        const { paginatedQuery, offset } = (0, apiHelpers_1.buildPaginationQuery)(query, page, perPage);
-        const snapshot = await paginatedQuery.get();
-        // Get total count
-        const totalSnapshot = await query.get();
-        const total = totalSnapshot.size;
-        const ngos = snapshot.docs.map(doc => ({
+        const offset = (page - 1) * perPage;
+        const snapshot = await query.limit(perPage + 1).offset(offset).get();
+        const items = snapshot.docs.slice(0, perPage).map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
-        return (0, responses_1.paginatedResponse)(res, ngos, total, page, perPage);
+        const hasNext = snapshot.docs.length > perPage;
+        const pagination = (0, apiHelpers_1.calculatePagination)(page, perPage);
+        pagination.hasNext = hasNext;
+        return (0, responses_1.paginatedResponse)(res, items, pagination);
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', error.message, 500);
     }
 };
 exports.listNGOs = listNGOs;
@@ -80,7 +81,7 @@ const getNGO = async (req, res) => {
         const { id } = req.params;
         const doc = await db.collection('ngos').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'NGO not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'NGO not found', 404);
         }
         return (0, responses_1.successResponse)(res, {
             id: doc.id,
@@ -88,17 +89,17 @@ const getNGO = async (req, res) => {
         });
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Get NGO error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to fetch NGO', 500);
     }
 };
 exports.getNGO = getNGO;
 // Create new NGO
 const createNGO = async (req, res) => {
     try {
-        const user = req.user;
         const ngoData = {
             ...req.body,
-            ownerId: user.uid,
+            ownerId: req.userId,
             verified: false,
             status: 'pending',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -109,10 +110,11 @@ const createNGO = async (req, res) => {
         return (0, responses_1.successResponse)(res, {
             id: doc.id,
             ...doc.data()
-        }, 201);
+        }, 'NGO created successfully', 201);
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Create NGO error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to create NGO', 500);
     }
 };
 exports.createNGO = createNGO;
@@ -120,15 +122,14 @@ exports.createNGO = createNGO;
 const updateNGO = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = req.user;
         const doc = await db.collection('ngos').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'NGO not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'NGO not found', 404);
         }
         const ngoData = doc.data();
         // Check if user is owner or admin
-        if (ngoData?.ownerId !== user.uid && !user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Unauthorized', 403);
+        if (ngoData?.ownerId !== req.userId && !req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Unauthorized to update this NGO', 403);
         }
         const updateData = {
             ...req.body,
@@ -137,7 +138,7 @@ const updateNGO = async (req, res) => {
         // Don't allow updating certain fields
         delete updateData.ownerId;
         delete updateData.createdAt;
-        if (!user.admin) {
+        if (!req.isAdmin) {
             delete updateData.verified;
             delete updateData.status;
         }
@@ -146,10 +147,11 @@ const updateNGO = async (req, res) => {
         return (0, responses_1.successResponse)(res, {
             id: updatedDoc.id,
             ...updatedDoc.data()
-        });
+        }, 'NGO updated successfully');
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Update NGO error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to update NGO', 500);
     }
 };
 exports.updateNGO = updateNGO;
@@ -157,21 +159,21 @@ exports.updateNGO = updateNGO;
 const deleteNGO = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = req.user;
         const doc = await db.collection('ngos').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'NGO not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'NGO not found', 404);
         }
         const ngoData = doc.data();
         // Check if user is owner or admin
-        if (ngoData?.ownerId !== user.uid && !user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Unauthorized', 403);
+        if (ngoData?.ownerId !== req.userId && !req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Unauthorized to delete this NGO', 403);
         }
         await db.collection('ngos').doc(id).delete();
         return (0, responses_1.successResponse)(res, { message: 'NGO deleted successfully' });
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Delete NGO error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to delete NGO', 500);
     }
 };
 exports.deleteNGO = deleteNGO;
@@ -180,19 +182,18 @@ const verifyNGO = async (req, res) => {
     try {
         const { id } = req.params;
         const { notes } = req.body;
-        const user = req.user;
-        if (!user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Admin access required', 403);
+        if (!req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Admin access required', 403);
         }
         const doc = await db.collection('ngos').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'NGO not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'NGO not found', 404);
         }
         await db.collection('ngos').doc(id).update({
             verified: true,
             status: 'active',
             verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-            verifiedBy: user.uid,
+            verifiedBy: req.userId,
             verificationNotes: notes || '',
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
@@ -200,10 +201,11 @@ const verifyNGO = async (req, res) => {
         return (0, responses_1.successResponse)(res, {
             id: updatedDoc.id,
             ...updatedDoc.data()
-        });
+        }, 'NGO verified successfully');
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Verify NGO error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to verify NGO', 500);
     }
 };
 exports.verifyNGO = verifyNGO;
@@ -212,19 +214,18 @@ const rejectNGO = async (req, res) => {
     try {
         const { id } = req.params;
         const { reason } = req.body;
-        const user = req.user;
-        if (!user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Admin access required', 403);
+        if (!req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Admin access required', 403);
         }
         const doc = await db.collection('ngos').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'NGO not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'NGO not found', 404);
         }
         await db.collection('ngos').doc(id).update({
             verified: false,
             status: 'rejected',
             rejectedAt: admin.firestore.FieldValue.serverTimestamp(),
-            rejectedBy: user.uid,
+            rejectedBy: req.userId,
             rejectionReason: reason || '',
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
@@ -232,10 +233,11 @@ const rejectNGO = async (req, res) => {
         return (0, responses_1.successResponse)(res, {
             id: updatedDoc.id,
             ...updatedDoc.data()
-        });
+        }, 'NGO rejected successfully');
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Reject NGO error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to reject NGO', 500);
     }
 };
 exports.rejectNGO = rejectNGO;

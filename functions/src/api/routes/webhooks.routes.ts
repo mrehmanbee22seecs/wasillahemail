@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { authenticateUser } from '../middleware/auth';
-import { rateLimiter } from '../middleware/rateLimiter';
-import { validate } from '../middleware/validator';
+import { authenticate } from '../middleware/auth';
+import { dynamicRateLimit } from '../middleware/rateLimiter';
+import { validateRequest } from '../middleware/validator';
 import {
   listWebhooks,
   getWebhook,
@@ -21,31 +21,31 @@ const webhookValidation = [
   body('url').isURL().withMessage('Valid URL is required'),
   body('events').isArray({ min: 1 }).withMessage('At least one event is required'),
   body('description').optional().trim(),
-  validate,
+  validateRequest,
 ];
 
 // List webhooks - Authenticated
-router.get('/', authenticateUser, rateLimiter, listWebhooks);
+router.get('/', authenticate, dynamicRateLimit, listWebhooks);
 
 // Get single webhook - Authenticated
-router.get('/:id', authenticateUser, rateLimiter, getWebhook);
+router.get('/:id', authenticate, dynamicRateLimit, getWebhook);
 
 // Create webhook - Authenticated
-router.post('/', authenticateUser, rateLimiter, webhookValidation, createWebhook);
+router.post('/', authenticate, dynamicRateLimit, webhookValidation, createWebhook);
 
 // Update webhook - Authenticated
-router.patch('/:id', authenticateUser, rateLimiter, updateWebhook);
+router.patch('/:id', authenticate, dynamicRateLimit, updateWebhook);
 
 // Delete webhook - Authenticated
-router.delete('/:id', authenticateUser, rateLimiter, deleteWebhook);
+router.delete('/:id', authenticate, dynamicRateLimit, deleteWebhook);
 
 // Get webhook deliveries - Authenticated
-router.get('/:id/deliveries', authenticateUser, rateLimiter, getDeliveries);
+router.get('/:id/deliveries', authenticate, dynamicRateLimit, getDeliveries);
 
 // Test webhook - Authenticated
-router.post('/:id/test', authenticateUser, rateLimiter, testWebhookEndpoint);
+router.post('/:id/test', authenticate, dynamicRateLimit, testWebhookEndpoint);
 
 // Retry webhook delivery - Authenticated
-router.post('/:id/deliveries/:deliveryId/retry', authenticateUser, rateLimiter, retryDelivery);
+router.post('/:id/deliveries/:deliveryId/retry', authenticate, dynamicRateLimit, retryDelivery);
 
 export default router;

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { authenticateUser, requireAdmin } from '../middleware/auth';
-import { rateLimiter } from '../middleware/rateLimiter';
-import { validate } from '../middleware/validator';
+import { authenticate, requireAdmin } from '../middleware/auth';
+import { dynamicRateLimit } from '../middleware/rateLimiter';
+import { validateRequest } from '../middleware/validator';
 import {
   listNGOs,
   getNGO,
@@ -25,34 +25,34 @@ const ngoValidation = [
   body('website').optional().isURL().withMessage('Valid URL required'),
   body('registrationNumber').optional().trim(),
   body('focus_areas').optional().isArray().withMessage('Focus areas must be an array'),
-  validate
+  validateRequest
 ];
 
 // List NGOs - Public
-router.get('/', rateLimiter, listNGOs);
+router.get('/', dynamicRateLimit, listNGOs);
 
 // Get single NGO - Public
-router.get('/:id', rateLimiter, getNGO);
+router.get('/:id', dynamicRateLimit, getNGO);
 
 // Create NGO - Authenticated
-router.post('/', authenticateUser, rateLimiter, ngoValidation, createNGO);
+router.post('/', authenticate, dynamicRateLimit, ngoValidation, createNGO);
 
 // Update NGO - Owner or Admin
-router.patch('/:id', authenticateUser, rateLimiter, updateNGO);
+router.patch('/:id', authenticate, dynamicRateLimit, updateNGO);
 
 // Delete NGO - Owner or Admin
-router.delete('/:id', authenticateUser, rateLimiter, deleteNGO);
+router.delete('/:id', authenticate, dynamicRateLimit, deleteNGO);
 
 // Verify NGO - Admin only
-router.post('/:id/verify', authenticateUser, requireAdmin, rateLimiter, [
+router.post('/:id/verify', authenticate, requireAdmin, dynamicRateLimit, [
   body('notes').optional().trim(),
-  validate
+  validateRequest
 ], verifyNGO);
 
 // Reject NGO - Admin only
-router.post('/:id/reject', authenticateUser, requireAdmin, rateLimiter, [
+router.post('/:id/reject', authenticate, requireAdmin, dynamicRateLimit, [
   body('reason').trim().notEmpty().withMessage('Rejection reason is required'),
-  validate
+  validateRequest
 ], rejectNGO);
 
 export default router;

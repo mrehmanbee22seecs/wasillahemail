@@ -37,7 +37,6 @@ exports.retryDelivery = exports.testWebhookEndpoint = exports.getDeliveries = ex
 const admin = __importStar(require("firebase-admin"));
 const responses_1 = require("../utils/responses");
 const apiHelpers_1 = require("../utils/apiHelpers");
-const webhookService_1 = require("../services/webhookService");
 const crypto = __importStar(require("crypto"));
 const db = admin.firestore();
 /**
@@ -47,26 +46,27 @@ const db = admin.firestore();
 // List webhooks for current user
 const listWebhooks = async (req, res) => {
     try {
-        const user = req.user;
-        const { page = 1, perPage = 20 } = (0, apiHelpers_1.sanitizeQueryParams)(req.query);
-        const query = db
+        const { page, perPage } = (0, apiHelpers_1.getPaginationParams)(req.query);
+        let query = db
             .collection('webhooks')
-            .where('userId', '==', user.uid)
+            .where('userId', '==', req.userId)
             .orderBy('createdAt', 'desc');
-        const { paginatedQuery, offset } = (0, apiHelpers_1.buildPaginationQuery)(query, page, perPage);
-        const snapshot = await paginatedQuery.get();
-        const totalSnapshot = await query.get();
-        const total = totalSnapshot.size;
-        const webhooks = snapshot.docs.map(doc => ({
+        const offset = (page - 1) * perPage;
+        const snapshot = await query.limit(perPage + 1).offset(offset).get();
+        const items = snapshot.docs.slice(0, perPage).map(doc => ({
             id: doc.id,
             ...doc.data(),
             // Don't expose secret in list
             secret: undefined,
         }));
-        return (0, responses_1.paginatedResponse)(res, webhooks, total, page, perPage);
+        const hasNext = snapshot.docs.length > perPage;
+        const pagination = (0, apiHelpers_1.calculatePagination)(page, perPage);
+        pagination.hasNext = hasNext;
+        return (0, responses_1.paginatedResponse)(res, items, pagination);
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('List webhooks error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to fetch webhooks', 500);
     }
 };
 exports.listWebhooks = listWebhooks;
@@ -74,15 +74,14 @@ exports.listWebhooks = listWebhooks;
 const getWebhook = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = req.user;
         const doc = await db.collection('webhooks').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'Webhook not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'Webhook not found', 404);
         }
         const webhook = doc.data();
         // Check ownership
-        if (webhook?.userId !== user.uid && !user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Unauthorized', 403);
+        if (webhook?.userId !== req.userId && !req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Unauthorized to access this webhook', 403);
         }
         return (0, responses_1.successResponse)(res, {
             id: doc.id,
@@ -92,19 +91,19 @@ const getWebhook = async (req, res) => {
         });
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Get webhook error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to fetch webhook', 500);
     }
 };
 exports.getWebhook = getWebhook;
 // Create webhook
 const createWebhook = async (req, res) => {
     try {
-        const user = req.user;
         const { url, events, description } = req.body;
         // Generate secret for signing
         const secret = crypto.randomBytes(32).toString('hex');
         const webhookData = {
-            userId: user.uid,
+            userId: req.userId,
             url,
             events,
             description: description || '',
@@ -118,10 +117,11 @@ const createWebhook = async (req, res) => {
         return (0, responses_1.successResponse)(res, {
             id: doc.id,
             ...doc.data(),
-        }, 201);
+        }, 'Webhook created successfully', 201);
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Create webhook error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to create webhook', 500);
     }
 };
 exports.createWebhook = createWebhook;
@@ -129,15 +129,14 @@ exports.createWebhook = createWebhook;
 const updateWebhook = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = req.user;
         const doc = await db.collection('webhooks').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'Webhook not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'Webhook not found', 404);
         }
         const webhook = doc.data();
         // Check ownership
-        if (webhook?.userId !== user.uid && !user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Unauthorized', 403);
+        if (webhook?.userId !== req.userId && !req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Unauthorized to update this webhook', 403);
         }
         const updateData = {
             ...req.body,
@@ -153,10 +152,11 @@ const updateWebhook = async (req, res) => {
             id: updatedDoc.id,
             ...updatedDoc.data(),
             secret: undefined,
-        });
+        }, 'Webhook updated successfully');
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Update webhook error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to update webhook', 500);
     }
 };
 exports.updateWebhook = updateWebhook;
@@ -164,21 +164,21 @@ exports.updateWebhook = updateWebhook;
 const deleteWebhook = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = req.user;
         const doc = await db.collection('webhooks').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'Webhook not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'Webhook not found', 404);
         }
         const webhook = doc.data();
         // Check ownership
-        if (webhook?.userId !== user.uid && !user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Unauthorized', 403);
+        if (webhook?.userId !== req.userId && !req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Unauthorized to delete this webhook', 403);
         }
         await db.collection('webhooks').doc(id).delete();
         return (0, responses_1.successResponse)(res, { message: 'Webhook deleted successfully' });
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Delete webhook error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to delete webhook', 500);
     }
 };
 exports.deleteWebhook = deleteWebhook;
@@ -186,22 +186,32 @@ exports.deleteWebhook = deleteWebhook;
 const getDeliveries = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = req.user;
         const { limit = 50 } = req.query;
         const doc = await db.collection('webhooks').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'Webhook not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'Webhook not found', 404);
         }
         const webhook = doc.data();
         // Check ownership
-        if (webhook?.userId !== user.uid && !user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Unauthorized', 403);
+        if (webhook?.userId !== req.userId && !req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Unauthorized to access webhook deliveries', 403);
         }
-        const deliveries = await (0, webhookService_1.getWebhookDeliveries)(id, Number(limit));
+        // Get deliveries from webhook_deliveries collection
+        const deliveriesSnapshot = await db
+            .collection('webhook_deliveries')
+            .where('webhookId', '==', id)
+            .orderBy('deliveredAt', 'desc')
+            .limit(Number(limit))
+            .get();
+        const deliveries = deliveriesSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
         return (0, responses_1.successResponse)(res, deliveries);
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Get deliveries error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to fetch webhook deliveries', 500);
     }
 };
 exports.getDeliveries = getDeliveries;
@@ -209,26 +219,47 @@ exports.getDeliveries = getDeliveries;
 const testWebhookEndpoint = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = req.user;
         const doc = await db.collection('webhooks').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'Webhook not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'Webhook not found', 404);
         }
         const webhook = doc.data();
         // Check ownership
-        if (webhook?.userId !== user.uid && !user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Unauthorized', 403);
+        if (webhook?.userId !== req.userId && !req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Unauthorized to test this webhook', 403);
         }
-        const result = await (0, webhookService_1.testWebhook)(id);
-        if (result.success) {
+        // Create a test payload
+        const testPayload = {
+            event: 'webhook.test',
+            data: {
+                message: 'This is a test webhook delivery',
+                timestamp: new Date().toISOString(),
+                webhookId: id
+            }
+        };
+        // Attempt to deliver the test webhook
+        try {
+            const axios = require('axios');
+            const signature = crypto
+                .createHmac('sha256', webhook?.secret || '')
+                .update(JSON.stringify(testPayload))
+                .digest('hex');
+            await axios.post(webhook?.url, testPayload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Webhook-Signature': signature
+                },
+                timeout: 10000
+            });
             return (0, responses_1.successResponse)(res, { message: 'Test webhook delivered successfully' });
         }
-        else {
-            return (0, responses_1.errorResponse)(res, result.error || 'Test webhook delivery failed', 500);
+        catch (deliveryError) {
+            return (0, responses_1.errorResponse)(res, 'DELIVERY_FAILED', `Test webhook delivery failed: ${deliveryError.message}`, 500);
         }
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Test webhook error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to test webhook', 500);
     }
 };
 exports.testWebhookEndpoint = testWebhookEndpoint;
@@ -236,26 +267,58 @@ exports.testWebhookEndpoint = testWebhookEndpoint;
 const retryDelivery = async (req, res) => {
     try {
         const { id, deliveryId } = req.params;
-        const user = req.user;
         const doc = await db.collection('webhooks').doc(id).get();
         if (!doc.exists) {
-            return (0, responses_1.errorResponse)(res, 'Webhook not found', 404);
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'Webhook not found', 404);
         }
         const webhook = doc.data();
         // Check ownership
-        if (webhook?.userId !== user.uid && !user.admin) {
-            return (0, responses_1.errorResponse)(res, 'Unauthorized', 403);
+        if (webhook?.userId !== req.userId && !req.isAdmin) {
+            return (0, responses_1.errorResponse)(res, 'FORBIDDEN', 'Unauthorized to retry webhook delivery', 403);
         }
-        const result = await (0, webhookService_1.retryWebhookDelivery)(deliveryId);
-        if (result.success) {
+        // Get the delivery record
+        const deliveryDoc = await db.collection('webhook_deliveries').doc(deliveryId).get();
+        if (!deliveryDoc.exists) {
+            return (0, responses_1.errorResponse)(res, 'NOT_FOUND', 'Delivery record not found', 404);
+        }
+        const delivery = deliveryDoc.data();
+        // Retry the delivery
+        try {
+            const axios = require('axios');
+            const signature = crypto
+                .createHmac('sha256', webhook?.secret || '')
+                .update(JSON.stringify(delivery?.payload))
+                .digest('hex');
+            const response = await axios.post(webhook?.url, delivery?.payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Webhook-Signature': signature
+                },
+                timeout: 10000
+            });
+            // Update delivery record
+            await db.collection('webhook_deliveries').doc(deliveryId).update({
+                status: 'success',
+                retryCount: (delivery?.retryCount || 0) + 1,
+                lastRetryAt: admin.firestore.FieldValue.serverTimestamp(),
+                responseStatus: response.status
+            });
             return (0, responses_1.successResponse)(res, { message: 'Webhook delivery retried successfully' });
         }
-        else {
-            return (0, responses_1.errorResponse)(res, result.error || 'Retry failed', 500);
+        catch (deliveryError) {
+            // Update failure record
+            await db.collection('webhook_deliveries').doc(deliveryId).update({
+                status: 'failed',
+                retryCount: (delivery?.retryCount || 0) + 1,
+                lastRetryAt: admin.firestore.FieldValue.serverTimestamp(),
+                error: deliveryError.message
+            });
+            return (0, responses_1.errorResponse)(res, 'DELIVERY_FAILED', `Webhook delivery retry failed: ${deliveryError.message}`, 500);
         }
     }
     catch (error) {
-        return (0, responses_1.errorResponse)(res, error.message, 500);
+        console.error('Retry delivery error:', error);
+        return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to retry webhook delivery', 500);
     }
 };
 exports.retryDelivery = retryDelivery;

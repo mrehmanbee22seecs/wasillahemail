@@ -17,27 +17,27 @@ const ngoValidation = [
     (0, express_validator_1.body)('website').optional().isURL().withMessage('Valid URL required'),
     (0, express_validator_1.body)('registrationNumber').optional().trim(),
     (0, express_validator_1.body)('focus_areas').optional().isArray().withMessage('Focus areas must be an array'),
-    validator_1.validate
+    validator_1.validateRequest
 ];
 // List NGOs - Public
-router.get('/', rateLimiter_1.rateLimiter, ngos_1.listNGOs);
+router.get('/', rateLimiter_1.dynamicRateLimit, ngos_1.listNGOs);
 // Get single NGO - Public
-router.get('/:id', rateLimiter_1.rateLimiter, ngos_1.getNGO);
+router.get('/:id', rateLimiter_1.dynamicRateLimit, ngos_1.getNGO);
 // Create NGO - Authenticated
-router.post('/', auth_1.authenticateUser, rateLimiter_1.rateLimiter, ngoValidation, ngos_1.createNGO);
+router.post('/', auth_1.authenticate, rateLimiter_1.dynamicRateLimit, ngoValidation, ngos_1.createNGO);
 // Update NGO - Owner or Admin
-router.patch('/:id', auth_1.authenticateUser, rateLimiter_1.rateLimiter, ngos_1.updateNGO);
+router.patch('/:id', auth_1.authenticate, rateLimiter_1.dynamicRateLimit, ngos_1.updateNGO);
 // Delete NGO - Owner or Admin
-router.delete('/:id', auth_1.authenticateUser, rateLimiter_1.rateLimiter, ngos_1.deleteNGO);
+router.delete('/:id', auth_1.authenticate, rateLimiter_1.dynamicRateLimit, ngos_1.deleteNGO);
 // Verify NGO - Admin only
-router.post('/:id/verify', auth_1.authenticateUser, auth_1.requireAdmin, rateLimiter_1.rateLimiter, [
+router.post('/:id/verify', auth_1.authenticate, auth_1.requireAdmin, rateLimiter_1.dynamicRateLimit, [
     (0, express_validator_1.body)('notes').optional().trim(),
-    validator_1.validate
+    validator_1.validateRequest
 ], ngos_1.verifyNGO);
 // Reject NGO - Admin only
-router.post('/:id/reject', auth_1.authenticateUser, auth_1.requireAdmin, rateLimiter_1.rateLimiter, [
+router.post('/:id/reject', auth_1.authenticate, auth_1.requireAdmin, rateLimiter_1.dynamicRateLimit, [
     (0, express_validator_1.body)('reason').trim().notEmpty().withMessage('Rejection reason is required'),
-    validator_1.validate
+    validator_1.validateRequest
 ], ngos_1.rejectNGO);
 exports.default = router;
 //# sourceMappingURL=ngos.routes.js.map
