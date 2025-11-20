@@ -2,6 +2,10 @@ import * as functions from 'firebase-functions';
 import { sendEmail } from './resend';
 import { updateKb } from './updateKb';
 import { sendTransactionalEmail } from './transactionalEmail';
+import app from './api/app';
+
+// REST API endpoint
+export const api = functions.https.onRequest(app);
 
 // Example HTTP function
 export const helloWorld = functions.https.onRequest(async (req, res) => {
