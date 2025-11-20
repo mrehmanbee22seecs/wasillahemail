@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Heart, X, CreditCard, Smartphone } from 'lucide-react';
+import DonationForm from './Donation/DonationForm';
 
 const DonationWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [suppressButton, setSuppressButton] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
 
   // Removed scrollIntoView - causes buggy behavior
@@ -58,6 +60,13 @@ const DonationWidget = () => {
     alert('Account number copied to clipboard!');
   };
 
+  const handleDonationSuccess = (donationId: string) => {
+    console.log('Donation successful:', donationId);
+    setShowForm(false);
+    setIsOpen(false);
+    alert('Thank you for your donation! We will send you a confirmation email shortly.');
+  };
+
   return (
     <>
       {!isOpen && !suppressButton && (
@@ -77,80 +86,143 @@ const DonationWidget = () => {
         <>
           <div
             className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              setIsOpen(false);
+              setShowForm(false);
+            }}
           />
           <div
             ref={widgetRef}
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[70] w-[92vw] max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto luxury-card bg-cream-white rounded-luxury-lg shadow-luxury-lg animate-scale-in"
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[70] w-[92vw] max-w-4xl max-h-[90vh] overflow-y-auto luxury-card bg-cream-white rounded-luxury-lg shadow-luxury-lg animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 text-white">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <Heart className="w-6 h-6" fill="currentColor" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Support Wasilah</h3>
-                <p className="text-sm opacity-90 font-medium">Make a difference today</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="hover:bg-white/20 p-2 rounded transition-colors"
-              title="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-6">
-            <p className="text-gray-900 font-medium mb-6 text-center">
-              Your generous donations help us continue our mission of empowering communities and creating lasting positive change.
-            </p>
-
-            <div className="space-y-4">
-              {paymentMethods.map((method, index) => (
-                <div key={index} className="border-2 border-gray-300 rounded-xl p-4 hover:border-vibrant-orange transition-colors">
-                  <div className="flex items-center mb-3">
-                    <div className={`${method.color} w-10 h-10 rounded-full flex items-center justify-center mr-3`}>
-                      <method.icon className="w-6 h-6 text-white" />
+            {showForm ? (
+              <>
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                      <Heart className="w-6 h-6" fill="currentColor" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900">{method.name}</h4>
-                      {method.bank && (
-                        <p className="text-xs text-gray-700 font-medium">{method.bank}</p>
-                      )}
+                      <h3 className="font-bold text-lg">Complete Your Donation</h3>
+                      <p className="text-sm opacity-90 font-medium">Thank you for your generosity</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowForm(false);
+                      setIsOpen(false);
+                    }}
+                    className="hover:bg-white/20 p-2 rounded transition-colors"
+                    title="Close"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Form Content */}
+                <div className="p-6">
+                  <DonationForm
+                    onSuccess={handleDonationSuccess}
+                    onCancel={() => setShowForm(false)}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                      <Heart className="w-6 h-6" fill="currentColor" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">Support Wasilah</h3>
+                      <p className="text-sm opacity-90 font-medium">Make a difference today</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="hover:bg-white/20 p-2 rounded transition-colors"
+                    title="Close"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  <p className="text-gray-900 font-medium mb-6 text-center">
+                    Your generous donations help us continue our mission of empowering communities and creating lasting positive change.
+                  </p>
+
+                  {/* Quick Donate Button */}
+                  <div className="mb-6 text-center">
+                    <button
+                      onClick={() => setShowForm(true)}
+                      className="w-full py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
+                    >
+                      <Heart className="w-6 h-6 mr-2" fill="currentColor" />
+                      Make a Donation
+                    </button>
+                    <p className="text-xs text-gray-600 mt-2">
+                      Choose amount, payment method, and track your donations
+                    </p>
+                  </div>
+
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-4 bg-cream-white text-gray-500">Or send directly to</span>
                     </div>
                   </div>
 
-                  <div className="bg-gray-100 rounded-xl p-3 mb-2">
-                    <p className="text-xs text-gray-700 font-medium mb-1">{method.instructions}</p>
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-gray-900 text-lg">{method.account}</p>
-                      <button
-                        onClick={() => copyToClipboard(method.account)}
-                        className="text-vibrant-orange hover:text-vibrant-orange-dark text-sm font-bold"
-                      >
-                        Copy
-                      </button>
-                    </div>
+                  <div className="space-y-4">
+                    {paymentMethods.map((method, index) => (
+                      <div key={index} className="border-2 border-gray-300 rounded-xl p-4 hover:border-vibrant-orange transition-colors">
+                        <div className="flex items-center mb-3">
+                          <div className={`${method.color} w-10 h-10 rounded-full flex items-center justify-center mr-3`}>
+                            <method.icon className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900">{method.name}</h4>
+                            {method.bank && (
+                              <p className="text-xs text-gray-700 font-medium">{method.bank}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-100 rounded-xl p-3 mb-2">
+                          <p className="text-xs text-gray-700 font-medium mb-1">{method.instructions}</p>
+                          <div className="flex items-center justify-between">
+                            <p className="font-bold text-gray-900 text-lg">{method.account}</p>
+                            <button
+                              onClick={() => copyToClipboard(method.account)}
+                              className="text-vibrant-orange hover:text-vibrant-orange-dark text-sm font-bold"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 p-4 bg-vibrant-orange/10 rounded-xl">
+                    <p className="text-sm text-gray-900 font-medium text-center">
+                      After making a donation, please email us at{' '}
+                      <a href="mailto:donations@wasilah.org" className="text-vibrant-orange-dark font-bold">
+                        donations@wasilah.org
+                      </a>{' '}
+                      with your transaction details for acknowledgment.
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-6 p-4 bg-vibrant-orange/10 rounded-xl">
-              <p className="text-sm text-gray-900 font-medium text-center">
-                After making a donation, please email us at{' '}
-                <a href="mailto:donations@wasilah.org" className="text-vibrant-orange-dark font-bold">
-                  donations@wasilah.org
-                </a>{' '}
-                with your transaction details for acknowledgment.
-              </p>
-            </div>
-          </div>
+              </>
+            )}
           </div>
         </>
       )}

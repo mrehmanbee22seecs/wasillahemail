@@ -5,6 +5,7 @@ import { db } from '../config/firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { ProjectSubmission, EventSubmission, SubmissionType, ChecklistItem, Reminder, HeadInfo } from '../types/submissions';
 import { sendEmail, formatSubmissionReceivedEmail } from '../utils/emailService';
 import { sendEditRequestEmail } from '../services/resendEmailService';
@@ -14,16 +15,19 @@ import ReminderManager from '../components/ReminderManager';
 import { scheduleReminderEmails, formatReminderEmail } from '../utils/emailService';
 import ImageUploadField from '../components/ImageUploadField';
 import HeadsManager from '../components/HeadsManager';
+import UpgradePrompt from '../components/Subscription/UpgradePrompt';
 
 const CreateSubmission = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { currentUser, userData, isAdmin } = useAuth();
+  const { canCreateProject, canCreateEvent, refreshUsage } = useSubscription();
   const [submissionType, setSubmissionType] = useState<SubmissionType>('project');
   const [draftId, setDraftId] = useState<string | null>(null);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   useEffect(() => {
     const typeParam = searchParams.get('type');
@@ -602,6 +606,23 @@ const CreateSubmission = () => {
   const handleSubmit = async (status: 'draft' | 'pending') => {
     if (!currentUser || !userData) return;
 
+    // Skip quota checks for admins, drafts, and edit mode
+    if (!isAdmin && status !== 'draft' && !isEditMode) {
+      // Check quota limits before submission
+      if (submissionType === 'project' && !canCreateProject) {
+        setShowUpgradePrompt(true);
+        return;
+      }
+
+      if (submissionType === 'event') {
+        const canCreate = await canCreateEvent(eventData.projectId);
+        if (!canCreate) {
+          setShowUpgradePrompt(true);
+          return;
+        }
+      }
+    }
+
     setLoading(true);
     try {
       // Handle edit mode differently
@@ -798,6 +819,11 @@ const CreateSubmission = () => {
         }
       } catch (e) {
         console.warn('Background tasks failed (non-blocking):', e);
+      }
+
+      // Refresh usage stats after successful submission
+      if (status !== 'draft' && !isEditMode) {
+        refreshUsage().catch(e => console.warn('Failed to refresh usage:', e));
       }
     } catch (error: any) {
       console.error('Error submitting:', error);
@@ -1826,6 +1852,15 @@ const CreateSubmission = () => {
           </form>
         </div>
       </div>
+
+      {/* Upgrade Prompt Modal */}
+      {showUpgradePrompt && (
+        <UpgradePrompt
+          trigger="quota"
+          resource={submissionType === 'project' ? 'projects' : 'events'}
+          onClose={() => setShowUpgradePrompt(false)}
+        />
+      )}
     </div>
   );
 };

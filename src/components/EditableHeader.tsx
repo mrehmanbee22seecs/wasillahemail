@@ -7,6 +7,7 @@ import AdminPanel from './AdminPanel';
 import ContentEditor from './ContentEditor';
 import EditButton from './EditButton';
 import AuthModal from './AuthModal';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const EditableHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -94,6 +95,8 @@ const EditableHeader = () => {
                   </Link>
                 )
               ))}
+              {/* Language Switcher */}
+              <LanguageSwitcher />
               {/* Auth actions in the main menu (desktop) */}
               {currentUser && !isGuest ? (
                 <button 

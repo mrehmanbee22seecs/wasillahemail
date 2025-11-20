@@ -1,0 +1,60 @@
+{
+  "name": "Wasillah - Social Impact Platform",
+  "short_name": "Wasillah",
+  "description": "Connect students, volunteers, and NGOs for meaningful social impact projects in Pakistan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e3a8a",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["social", "productivity", "education"],
+  "icons": [
+    {
+      "src": "/logo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/logo.jpeg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Browse Projects",
+      "short_name": "Projects",
+      "description": "Browse available projects",
+      "url": "/projects",
+      "icons": [{ "src": "/logo.jpeg", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Applications",
+      "short_name": "Applications",
+      "description": "View your applications",
+      "url": "/applications",
+      "icons": [{ "src": "/logo.jpeg", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/image.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

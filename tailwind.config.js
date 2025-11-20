@@ -36,6 +36,7 @@ export default {
         'luxury-body': ['Inter', 'sans-serif'],
         'luxury-medium': ['Inter', 'sans-serif'],
         'arabic': ['Amiri', 'serif'],
+        'urdu': ['Noto Nastaliq Urdu', 'serif'],
       },
       animation: {
         'cinematic-fade': 'cinematic-fade-in 1.2s ease-out forwards',
@@ -47,6 +48,23 @@ export default {
         'particle-drift': 'particle-drift 5s ease-in-out infinite',
         'slide-up-luxury': 'slide-up-luxury 1s ease-out forwards',
         'fade-in-luxury': 'fade-in-luxury 0.8s ease-out forwards',
+        'slide-up': 'slide-up 0.3s ease-out',
+        'slide-down': 'slide-down 0.3s ease-out',
+        'fade-in': 'fade-in 0.2s ease-out',
+      },
+      keyframes: {
+        'slide-up': {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'slide-down': {
+          '0%': { transform: 'translateY(-100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
       },
       boxShadow: {
         'luxury': '0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 107, 157, 0.2)',

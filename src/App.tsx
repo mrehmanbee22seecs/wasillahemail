@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AdminProvider } from './contexts/AdminContext';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import EditableHeader from './components/EditableHeader';
 import EditableFooter from './components/EditableFooter';
@@ -22,24 +24,41 @@ import AdminKbManager from './pages/AdminKbManager';
 import MyApplications from './pages/MyApplications';
 import NGOPersonal from './pages/NGOPersonal';
 import UserProfilePage from './pages/UserProfile';
+import Upgrade from './pages/Upgrade';
+import DonationManagement from './pages/DonationManagement';
+import MyDonations from './pages/MyDonations';
+import Analytics from './pages/Analytics';
+import TranslationEditor from './components/Admin/TranslationEditor';
 import ChatWidget from './components/ChatWidget';
 import DonationWidget from './components/DonationWidget';
 import AdminToggle from './components/AdminToggle';
 import ScrollToTop from './components/ScrollToTop';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { useActivityLogger } from './hooks/useActivityLogger';
 import { setupMigrationTools } from './utils/runMigration';
 import { initScrollReveal } from './utils/scrollReveal';
 import { initAutoLearning } from './services/autoLearnService';
+import { initGA4, trackPageView } from './utils/googleAnalytics';
 
 const AppContent = () => {
   useActivityLogger();
+  const location = useLocation();
 
   useEffect(() => {
     setupMigrationTools();
     initScrollReveal();
     // Initialize smart KB auto-learning in background
     initAutoLearning();
+    // Initialize Google Analytics 4
+    initGA4();
   }, []);
+
+  // Track page views on route change
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen app-bg">
@@ -64,12 +83,20 @@ const AppContent = () => {
           <Route path="/ngo/profile" element={<NGOPersonal />} />
           <Route path="/ngo/:ngoId" element={<NGOPersonal />} />
           <Route path="/u/:userId" element={<UserProfilePage />} />
+          <Route path="/upgrade" element={<Upgrade />} />
+          <Route path="/donations/manage" element={<DonationManagement />} />
+          <Route path="/donations/my" element={<MyDonations />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/admin/translations" element={<TranslationEditor />} />
         </Routes>
       </main>
       <EditableFooter />
       <ChatWidget />
       <DonationWidget />
       <AdminToggle />
+      <PWAInstallPrompt />
+      <PWAUpdatePrompt />
+      <OfflineIndicator />
     </div>
   );
 };
@@ -78,13 +105,17 @@ function App() {
   return (
     <AuthProvider>
       <AdminProvider>
-        <ThemeProvider>
-          <Router>
-            <ProtectedRoute>
-              <AppContent />
-            </ProtectedRoute>
-          </Router>
-        </ThemeProvider>
+        <LanguageProvider>
+          <SubscriptionProvider>
+            <ThemeProvider>
+              <Router>
+                <ProtectedRoute>
+                  <AppContent />
+                </ProtectedRoute>
+              </Router>
+            </ThemeProvider>
+          </SubscriptionProvider>
+        </LanguageProvider>
       </AdminProvider>
     </AuthProvider>
   );
