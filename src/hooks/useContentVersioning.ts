@@ -16,7 +16,7 @@ import {
   limit as limitQuery,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../config/firebase';
 import type { ContentVersion } from '../types/cms';
 
 interface VersionData {

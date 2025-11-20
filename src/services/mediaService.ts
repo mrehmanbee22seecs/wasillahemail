@@ -1,5 +1,5 @@
 // Media Service - Cloudinary Integration
-import { db } from '../firebase';
+import { db } from '../config/firebase';
 import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, orderBy, limit } from 'firebase/firestore';
 import type { Media, MediaUploadOptions } from '../types/cms';
 

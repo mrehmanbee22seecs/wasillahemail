@@ -4,7 +4,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { auth } from '../firebase';
+import { auth } from '../config/firebase';
 import type {
   ApiConfig,
   ApiRequest,

@@ -150,3 +150,54 @@ export const trackShare = (
     });
   }
 };
+
+/**
+ * Check if Web Share API is available
+ */
+export const canUseWebShare = (): boolean => {
+  return typeof navigator !== 'undefined' && !!navigator.share;
+};
+
+/**
+ * Share via Web Share API
+ */
+export const shareViaWebAPI = async (content: { title: string; text?: string; url: string }): Promise<boolean> => {
+  if (!canUseWebShare()) {
+    return false;
+  }
+  return shareNative(content);
+};
+
+/**
+ * Open share link for a specific platform
+ */
+export const openShareLink = (
+  platform: 'whatsapp' | 'facebook' | 'twitter' | 'linkedin' | 'email',
+  content: { title: string; text?: string; url: string; hashtags?: string[]; via?: string }
+): void => {
+  const shareData: ShareData = {
+    title: content.title,
+    text: content.text,
+    url: content.url,
+    hashtags: content.hashtags,
+    via: content.via,
+  };
+
+  switch (platform) {
+    case 'whatsapp':
+      shareOnWhatsApp(shareData);
+      break;
+    case 'facebook':
+      shareOnFacebook(shareData);
+      break;
+    case 'twitter':
+      shareOnTwitter(shareData);
+      break;
+    case 'linkedin':
+      shareOnLinkedIn(shareData);
+      break;
+    case 'email':
+      shareViaEmail(shareData);
+      break;
+  }
+};
