@@ -6,9 +6,11 @@
 import { Router } from 'express';
 import projectsRoutes from './projects.routes';
 import eventsRoutes from './events.routes';
+import ngosRoutes from './ngos.routes';
 import usersRoutes from './users.routes';
 import adminRoutes from './admin.routes';
 import analyticsRoutes from './analytics.routes';
+import webhooksRoutes from './webhooks.routes';
 
 const router = Router();
 
@@ -27,8 +29,10 @@ router.get('/health', (req, res) => {
 // Mount resource routes
 router.use('/projects', projectsRoutes);
 router.use('/events', eventsRoutes);
+router.use('/ngos', ngosRoutes);
 router.use('/users', usersRoutes);
 router.use('/admin', adminRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/webhooks', webhooksRoutes);
 
 export default router;
