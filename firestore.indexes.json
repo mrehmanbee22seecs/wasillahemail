@@ -479,6 +479,54 @@
         { "fieldPath": "folder", "order": "ASCENDING" },
         { "fieldPath": "uploadedAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "error_logs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "severity", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "error_logs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "url", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "performance_logs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "metricName", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "performance_logs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "rating", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "usage_logs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "eventName", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "usage_logs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
