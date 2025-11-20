@@ -32,13 +32,19 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendTransactionalEmail = exports.updateKnowledgeBase = exports.sendTestEmail = exports.helloWorld = void 0;
+exports.sendTransactionalEmail = exports.updateKnowledgeBase = exports.sendTestEmail = exports.helloWorld = exports.api = void 0;
 const functions = __importStar(require("firebase-functions"));
 const resend_1 = require("./resend");
 const updateKb_1 = require("./updateKb");
 const transactionalEmail_1 = require("./transactionalEmail");
 Object.defineProperty(exports, "sendTransactionalEmail", { enumerable: true, get: function () { return transactionalEmail_1.sendTransactionalEmail; } });
+const app_1 = __importDefault(require("./api/app"));
+// REST API endpoint
+exports.api = functions.https.onRequest(app_1.default);
 // Example HTTP function
 exports.helloWorld = functions.https.onRequest(async (req, res) => {
     res.send('Hello from Firebase Functions!');
