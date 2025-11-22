@@ -97,7 +97,11 @@ export const deliverWebhook = async (
     
     return { success: true, response: response.data };
   } catch (error: any) {
-    // Record failed delivery
+     const safeError =
+     error?.response?.status
+       ? `HTTP ${error.response.status}${error.response.statusText ? ` ${error.response.statusText}` : ''}`
+       : (error?.code ? `ERR ${String(error.code)}` : 'Network or timeout error');
+   const truncated = safeError.substring(0, 200);
     await db.collection('webhook_deliveries').add({
       webhookId,
       event: payload.event,
@@ -105,11 +109,11 @@ export const deliverWebhook = async (
       status: 'failed',
       attempts: 1,
       lastAttempt: admin.firestore.FieldValue.serverTimestamp(),
-      error: error.message,
+      error: truncated,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     
-    return { success: false, error: error.message };
+    return { success: false, error: truncated };
   }
 };
 
