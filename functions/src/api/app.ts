@@ -18,9 +18,9 @@ app.use(helmet());
 // CORS configuration
 app.use(cors(API_CONFIG.cors));
 
-// Body parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parsers with explicit limits to prevent oversized payloads
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Request logging in development
 if (process.env.NODE_ENV === 'development') {
