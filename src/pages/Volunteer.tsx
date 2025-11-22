@@ -27,7 +27,7 @@ const Volunteer = () => {
   });
 
   const skillOptions = [
-    'Teaching/Education', 'Healthcare/Medical', 'Technology/IT', 'Marketing/Communications',
+    'Teaching/Education', 'Healthcare/Medical', 'Technology/IT', 'Marketing',
     'Event Planning', 'Project Management', 'Fundraising', 'Administration',
     'Translation', 'Photography', 'Graphic Design', 'Social Media',
     'Counseling', 'Legal Assistance', 'Engineering', 'Other'
@@ -308,14 +308,14 @@ const Volunteer = () => {
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-3">
                     {skillOptions.map((skill) => (
-                      <label key={skill} className="flex items-center">
+                      <label key={skill} className="flex items-center space-x-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formData.skills.includes(skill)}
                           onChange={() => handleCheckboxChange('skills', skill)}
-                          className="mr-2 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                          className="flex-shrink-0 w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
                         />
-                        <span className="text-sm text-gray-700">{skill}</span>
+                        <span className="text-sm text-gray-700 truncate">{skill}</span>
                       </label>
                     ))}
                   </div>

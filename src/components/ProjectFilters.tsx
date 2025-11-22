@@ -3,7 +3,7 @@
  * Advanced filtering for project discovery
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Filter,
   Search,
@@ -23,6 +23,7 @@ export interface ProjectFilterCriteria {
   categories: string[];
   locations: string[];
   statuses: string[];
+  months: string[];
   dateRange: {
     start: string;
     end: string;
@@ -57,6 +58,7 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     categories: [],
     locations: [],
     statuses: [],
+    months: [],
     dateRange: { start: '', end: '' },
     skills: [],
     sortBy: 'newest',
@@ -123,11 +125,53 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
       filtered = filtered.filter(project => criteria.locations.includes(project.location));
     }
 
-    // Status filter
+    // Month filter
+    if (criteria.months.length > 0) {
+      filtered = filtered.filter(project => {
+        if (!project.startDate) return false;
+        const startDate = typeof project.startDate === 'string' 
+          ? new Date(project.startDate)
+          : project.startDate.toDate?.() || new Date();
+        const projectMonth = startDate.toLocaleString('default', { month: 'long' });
+        return criteria.months.includes(projectMonth);
+      });
+    }
+
+    // Status filter - properly determine project status based on dates
     if (criteria.statuses.length > 0) {
       filtered = filtered.filter(project => {
-        const status = project.status === 'approved' ? 'ongoing' : project.status;
-        return criteria.statuses.includes(status);
+        // Determine actual project status based on dates
+        const now = new Date();
+        let actualStatus = 'ongoing'; // Default for approved projects
+        
+        // Only consider approved projects for status filtering
+        if (project.status !== 'approved') {
+          return false;
+        }
+        
+        // Check if project has end date and if it's completed
+        if (project.endDate) {
+          const endDate = typeof project.endDate === 'string' 
+            ? new Date(project.endDate)
+            : project.endDate.toDate?.() || new Date();
+          
+          if (endDate < now) {
+            actualStatus = 'completed';
+          }
+        }
+        
+        // Check if project hasn't started yet (upcoming)
+        if (project.startDate) {
+          const startDate = typeof project.startDate === 'string'
+            ? new Date(project.startDate)
+            : project.startDate.toDate?.() || new Date();
+          
+          if (startDate > now) {
+            actualStatus = 'upcoming';
+          }
+        }
+        
+        return criteria.statuses.includes(actualStatus);
       });
     }
 
@@ -227,6 +271,15 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     }));
   };
 
+  const toggleMonth = (month: string) => {
+    setCriteria(prev => ({
+      ...prev,
+      months: prev.months.includes(month)
+        ? prev.months.filter(m => m !== month)
+        : [...prev.months, month],
+    }));
+  };
+
   const toggleSkill = (skill: string) => {
     setCriteria(prev => ({
       ...prev,
@@ -242,6 +295,7 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
       categories: [],
       locations: [],
       statuses: [],
+      months: [],
       dateRange: { start: '', end: '' },
       skills: [],
       sortBy: 'newest',
@@ -253,6 +307,7 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     criteria.categories.length +
     criteria.locations.length +
     criteria.statuses.length +
+    criteria.months.length +
     (criteria.dateRange.start ? 1 : 0) +
     (criteria.dateRange.end ? 1 : 0) +
     criteria.skills.length +
@@ -349,6 +404,29 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
                   }`}
                 >
                   {location}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Months */}
+          <div>
+            <label className="block font-luxury-medium text-logo-navy mb-3 flex items-center">
+              <Calendar className="w-4 h-4 mr-2" />
+              Start Month
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                <button
+                  key={month}
+                  onClick={() => toggleMonth(month)}
+                  className={`px-4 py-2 rounded-luxury border-2 transition-colors ${
+                    criteria.months.includes(month)
+                      ? 'bg-vibrant-orange text-white border-vibrant-orange'
+                      : 'bg-white text-logo-navy border-logo-navy/30 hover:border-vibrant-orange/50'
+                  }`}
+                >
+                  {month}
                 </button>
               ))}
             </div>

@@ -25,6 +25,7 @@ import MyApplications from './pages/MyApplications';
 import NGOPersonal from './pages/NGOPersonal';
 import UserProfilePage from './pages/UserProfile';
 import Upgrade from './pages/Upgrade';
+import PaymentReturn from './pages/PaymentReturn';
 import DonationManagement from './pages/DonationManagement';
 import MyDonations from './pages/MyDonations';
 import Analytics from './pages/Analytics';
@@ -84,6 +85,7 @@ const AppContent = () => {
           <Route path="/ngo/:ngoId" element={<NGOPersonal />} />
           <Route path="/u/:userId" element={<UserProfilePage />} />
           <Route path="/upgrade" element={<Upgrade />} />
+          <Route path="/payment/return" element={<PaymentReturn />} />
           <Route path="/donations/manage" element={<DonationManagement />} />
           <Route path="/donations/my" element={<MyDonations />} />
           <Route path="/analytics" element={<Analytics />} />

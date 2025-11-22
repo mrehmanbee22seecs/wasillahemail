@@ -93,10 +93,11 @@ const DonationWidget = () => {
           />
           <div
             ref={widgetRef}
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[70] w-[92vw] max-w-4xl max-h-[90vh] overflow-y-auto luxury-card bg-cream-white rounded-luxury-lg shadow-luxury-lg animate-scale-in"
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {showForm ? (
+            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto luxury-card bg-cream-white rounded-luxury-lg shadow-luxury-lg">
+              {showForm ? (
               <>
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 text-white">
@@ -223,6 +224,7 @@ const DonationWidget = () => {
                 </div>
               </>
             )}
+            </div>
           </div>
         </>
       )}

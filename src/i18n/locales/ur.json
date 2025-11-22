@@ -37,7 +37,11 @@
     "language": "زبان",
     "switchLanguage": "زبان تبدیل کریں",
     "english": "انگریزی",
-    "urdu": "اردو"
+    "urdu": "اردو",
+    "settings": "ترتیبات",
+    "subscribe": "جڑے رہیں",
+    "quickLinks": "فوری لنکس",
+    "getInTouch": "رابطہ کریں"
   },
   "navigation": {
     "home": "ہوم",

@@ -22,20 +22,16 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
   children,
 }) => {
   const [language, setLanguage] = useState<Language>(() => {
-    // Get saved language from localStorage or default to English
-    const saved = localStorage.getItem('language');
-    return (saved === 'ur' || saved === 'en' ? saved : 'en') as Language;
+    // Language switching disabled - always use English
+    return 'en' as Language;
   });
 
   useEffect(() => {
-    // Set HTML lang and dir attributes on mount and language change
-    const dir = language === 'ur' ? 'rtl' : 'ltr';
-    document.documentElement.setAttribute('lang', language);
-    document.documentElement.setAttribute('dir', dir);
-    
-    // Also set on body for better CSS support
-    document.body.setAttribute('dir', dir);
-  }, [language]);
+    // Language locked to English - always use LTR
+    document.documentElement.setAttribute('lang', 'en');
+    document.documentElement.setAttribute('dir', 'ltr');
+    document.body.setAttribute('dir', 'ltr');
+  }, []);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>

@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { Check, X, Sparkles, Zap, Crown } from 'lucide-react';
 import { SubscriptionPlan } from '../../types/subscription';
+import PaymentCheckout from '../Payment/PaymentCheckout';
 
 interface PlanSelectorProps {
   onSelectPlan?: (plan: SubscriptionPlan) => void;
@@ -22,6 +23,8 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
   const { subscription, getPlanConfig, upgradeToPremium, downgradToFree } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlanForPayment, setSelectedPlanForPayment] = useState<SubscriptionPlan | null>(null);
 
   const currentPlan = propCurrentPlan || subscription?.plan || 'free';
 
@@ -31,13 +34,17 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
   const handleSelectPlan = async (plan: SubscriptionPlan) => {
     if (plan === currentPlan) return;
 
+    // If upgrading to premium, show payment modal
+    if (plan === 'premium') {
+      setSelectedPlanForPayment(plan);
+      setShowPaymentModal(true);
+      return;
+    }
+
+    // If downgrading to free, proceed directly
     setLoading(true);
     try {
-      if (plan === 'premium') {
-        await upgradeToPremium();
-      } else {
-        await downgradToFree();
-      }
+      await downgradToFree();
       
       if (onSelectPlan) {
         onSelectPlan(plan);
@@ -207,9 +214,33 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
           All plans include access to our community and knowledge base
         </p>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-          Payment processing will be integrated soon. Premium features are currently available for testing.
+          Secure payment processing via JazzCash
         </p>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && selectedPlanForPayment && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <PaymentCheckout
+              plan={selectedPlanForPayment}
+              amount={premiumPlan.price}
+              currency={premiumPlan.currency}
+              onSuccess={async () => {
+                await upgradeToPremium();
+                setShowPaymentModal(false);
+                if (onSelectPlan) {
+                  onSelectPlan(selectedPlanForPayment);
+                }
+              }}
+              onCancel={() => {
+                setShowPaymentModal(false);
+                setSelectedPlanForPayment(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
