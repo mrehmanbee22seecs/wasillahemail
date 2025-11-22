@@ -9,8 +9,11 @@ exports.API_CONFIG = {
     version: '1.0.0',
     basePath: '/api',
     cors: {
-        origin: process.env.ALLOWED_ORIGINS?.split(',') || ['*'],
-        credentials: true,
+       // Safely parse env and enforce secure defaults
+         origin: (process.env.ALLOWED_ORIGINS && process.env.ALLOWED_ORIGINS.trim().length > 0)
+           ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
+           : false, // disallow all by default when credentials are true
+         credentials: true,
     },
     rateLimit: {
         volunteer: {
