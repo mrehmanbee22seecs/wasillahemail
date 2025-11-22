@@ -44,11 +44,19 @@ export const verifySignature = (
   signature: string,
   secret: string
 ): boolean => {
+  if (!signature || typeof signature !== 'string') return false;
   const expectedSignature = generateSignature(payload, secret);
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+   // Avoid throwing on length mismatch
+   const sigBuf = Buffer.from(signature, 'hex');
+   const expBuf = Buffer.from(expectedSignature, 'hex');
+   if (sigBuf.length !== expBuf.length) {
+     return false;
+   }
+   try {
+     return crypto.timingSafeEqual(sigBuf, expBuf);
+   } catch {
+     return false;
+   }
 };
 
 // Deliver webhook to endpoint
