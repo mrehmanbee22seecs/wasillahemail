@@ -222,6 +222,7 @@ export const exportAndUploadReport = async (
       content = exportToJSON(result.data);
       break;
     case 'excel':
+      // exportToExcel currently returns CSV content; treat as CSV to avoid corrupted files
       content = exportToExcel(result.data);
       break;
     case 'pdf':
@@ -231,11 +232,26 @@ export const exportAndUploadReport = async (
       throw new Error(`Unsupported format: ${result.format}`);
   }
 
-  // Upload to Firebase Storage
-  const filename = `reports/${userId}/${result.id}.${result.format}`;
+  // Determine correct storage mime/extension
+   const isExcelAsCsv = result.format === 'excel';
+   const effectiveFormat = isExcelAsCsv ? 'csv' : result.format;
+   const filename = `reports/${userId}/${result.id}.${effectiveFormat}`;
+   const storageRef = ref(storage, filename);
   const storageRef = ref(storage, filename);
-  const blob = new Blob([content], { type: getMimeType(result.format) });
-
+ const blob = new Blob([content], { type: getMimeType(effectiveFormat) });
+ 
+   await uploadBytes(storageRef, blob);
+   const downloadURL = await getDownloadURL(storageRef);
+ 
+   // Update result with file URL
+   await updateDoc(doc(db, RESULTS_COLLECTION, result.id), {
+     fileUrl: downloadURL,
+     fileSize: blob.size
+   });
+ 
+   return downloadURL;
+ };
+ 
   await uploadBytes(storageRef, blob);
   const downloadURL = await getDownloadURL(storageRef);
 
