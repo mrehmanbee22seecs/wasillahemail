@@ -179,33 +179,28 @@ export const deleteWebhook = async (req: AuthRequest, res: Response) => {
 export const getDeliveries = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { limit = 50 } = req.query;
-    
+    const rawLimit = Number(req.query.limit ?? 50);
+    const limitNum = Math.min(Math.max(1, rawLimit), 100); // clamp to [1,100]
     const doc = await db.collection('webhooks').doc(id).get();
     
     if (!doc.exists) {
       return errorResponse(res, 'NOT_FOUND', 'Webhook not found', 404);
     }
-    
     const webhook = doc.data();
-    
-    // Check ownership
     if (webhook?.userId !== req.userId && !req.isAdmin) {
       return errorResponse(res, 'FORBIDDEN', 'Unauthorized to access webhook deliveries', 403);
     }
     
-    // Get deliveries from webhook_deliveries collection
     const deliveriesSnapshot = await db
       .collection('webhook_deliveries')
       .where('webhookId', '==', id)
-      .orderBy('webhookId')
       .orderBy('deliveredAt', 'desc')
-      .limit(Number(limit))
+      .limit(limitNum)
       .get();
     
     const deliveries = deliveriesSnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
     
     return successResponse(res, deliveries);
