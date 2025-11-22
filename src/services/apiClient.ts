@@ -95,6 +95,7 @@ export class ApiClient {
           if (retryAfter) {
             this.rateLimitInfo = {
               ...this.rateLimitInfo!,
+              ...(this.rateLimitInfo || { limit: 0, remaining: 0, reset: new Date(0) }),
               retryAfter,
             };
           }
