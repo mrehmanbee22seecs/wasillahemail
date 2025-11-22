@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, User, LogOut, Settings, LogIn, Key } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useContent } from '../hooks/useContent';
+import { useTranslation } from '../i18n/config';
 import AdminPanel from './AdminPanel';
 import ContentEditor from './ContentEditor';
 import EditButton from './EditButton';
@@ -18,6 +19,7 @@ const EditableHeader = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const location = useLocation();
   const { currentUser, userData, isGuest, isAdmin, logout } = useAuth();
+  const { t, isRTL } = useTranslation();
 
   const { data: headerData, upsertContent: saveHeader } = useContent('header_content', 'main');
 
@@ -38,13 +40,13 @@ const EditableHeader = () => {
   const header = headerData || defaultHeader;
 
   const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'About Us', href: '/about' },
-    { name: 'Projects', href: '/projects' },
-    { name: 'Events', href: '/events' },
-    { name: 'Join Us', href: '/volunteer' },
-    { name: 'Contact', href: '/contact' },
+    { name: t('navigation.home'), href: '/' },
+    { name: t('navigation.dashboard'), href: '/dashboard' },
+    { name: t('navigation.about'), href: '/about' },
+    { name: t('navigation.projects'), href: '/projects' },
+    { name: t('navigation.events'), href: '/events' },
+    { name: t('navigation.volunteer'), href: '/volunteer' },
+    { name: t('navigation.contact'), href: '/contact' },
   ];
 
   return (
@@ -103,14 +105,14 @@ const EditableHeader = () => {
                   onClick={logout} 
                   className="px-4 py-2.5 rounded-lg font-luxury-semibold text-sm text-cream-elegant hover:bg-logo-navy-light hover:text-vibrant-orange-light transition-all duration-300 border border-cream-elegant/30"
                 >
-                  Sign Out
+                  {t('common.logout')}
                 </button>
               ) : (
                 <button 
                   onClick={() => setShowAuthModal(true)} 
                   className="px-5 py-2.5 rounded-lg font-luxury-semibold text-sm bg-vibrant-orange text-cream-elegant hover:bg-vibrant-orange-light transition-all duration-300 shadow-lg"
                 >
-                  Sign In
+                  {t('common.login')}
                 </button>
               )}
             </div>
@@ -138,7 +140,7 @@ const EditableHeader = () => {
                         {userData?.displayName || 'User'}
                       </p>
                       {isAdmin && (
-                        <p className="text-vibrant-orange-light text-xs">Admin</p>
+                        <p className="text-vibrant-orange-light text-xs">{t('navigation.admin')}</p>
                       )}
                     </div>
                   </button>
@@ -153,8 +155,8 @@ const EditableHeader = () => {
                           }}
                           className="w-full text-left px-4 py-2 text-cream-elegant hover:bg-vibrant-orange/20 transition-colors flex items-center"
                         >
-                          <Settings className="w-4 h-4 mr-3" />
-                          Admin Panel
+                          <Settings className={`w-4 h-4 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+                          {t('navigation.admin')} {t('common.settings')}
                         </button>
                       )}
                       <Link
@@ -162,8 +164,8 @@ const EditableHeader = () => {
                         onClick={() => setShowUserMenu(false)}
                         className="w-full text-left px-4 py-2 text-cream-elegant hover:bg-vibrant-orange/20 transition-colors flex items-center"
                       >
-                        <User className="w-4 h-4 mr-3" />
-                        My Profile
+                        <User className={`w-4 h-4 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+                        {t('navigation.profile')}
                       </Link>
                       <button
                         onClick={() => {
@@ -172,8 +174,8 @@ const EditableHeader = () => {
                         }}
                         className="w-full text-left px-4 py-2 text-cream-elegant hover:bg-vibrant-orange/20 transition-colors flex items-center"
                       >
-                        <LogOut className="w-4 h-4 mr-3" />
-                        Sign Out
+                        <LogOut className={`w-4 h-4 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+                        {t('common.logout')}
                       </button>
                     </div>
                   )}
@@ -184,7 +186,7 @@ const EditableHeader = () => {
                   className="flex items-center space-x-2 px-6 py-3 bg-vibrant-orange text-cream-elegant rounded-luxury hover:bg-vibrant-orange-light transition-colors font-luxury-semibold shadow-lg"
                 >
                   <LogIn className="w-5 h-5" />
-                  <span>Sign In</span>
+                  <span>{t('common.login')}</span>
                 </button>
               ) : null}
             </div>
@@ -234,7 +236,7 @@ const EditableHeader = () => {
                       onClick={() => { setShowAdminPanel(true); setIsMenuOpen(false); }}
                       className="w-full block px-6 py-4 rounded-luxury text-base font-luxury-semibold bg-vibrant-orange text-white hover:bg-vibrant-orange-light transition-colors shadow-lg"
                     >
-                      Open Admin Panel
+                      {t('navigation.admin')} {t('common.settings')}
                     </button>
                   </div>
                 )}
@@ -246,14 +248,14 @@ const EditableHeader = () => {
                       onClick={() => { logout(); setIsMenuOpen(false); }}
                       className="w-full block px-6 py-4 rounded-luxury text-base font-luxury-semibold bg-logo-navy-light/60 text-cream-elegant hover:bg-vibrant-orange/30 transition-colors border border-cream-elegant/30"
                     >
-                      Sign Out
+                      {t('common.logout')}
                     </button>
                   ) : (
                     <button
                       onClick={() => { setShowAuthModal(true); setIsMenuOpen(false); }}
                       className="w-full block px-6 py-4 rounded-luxury text-base font-luxury-semibold bg-vibrant-orange text-white hover:bg-vibrant-orange-light transition-colors shadow-lg"
                     >
-                      Sign In
+                      {t('common.login')}
                     </button>
                   )}
                 </div>
@@ -271,10 +273,10 @@ const EditableHeader = () => {
       <ContentEditor
         isOpen={editingSection === 'header'}
         onClose={() => setEditingSection(null)}
-        title="Edit Header"
+        title={t('common.edit')}
         fields={[
-          { name: 'arabicName', label: 'Arabic Name', type: 'text', required: true },
-          { name: 'englishName', label: 'English Name', type: 'text', required: true },
+          { name: 'arabicName', label: t('common.name') + ' (Urdu)', type: 'text', required: true },
+          { name: 'englishName', label: t('common.name') + ' (English)', type: 'text', required: true },
           { name: 'logoUrl', label: 'Logo Image URL', type: 'text', required: true }
         ]}
         initialData={header}

@@ -83,8 +83,10 @@ export function useTranslation() {
   const changeLanguage = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem('language', lang);
+    const newDir = languages[lang].dir;
     document.documentElement.setAttribute('lang', lang);
-    document.documentElement.setAttribute('dir', dir);
+    document.documentElement.setAttribute('dir', newDir);
+    document.body.setAttribute('dir', newDir);
   };
   
   return {

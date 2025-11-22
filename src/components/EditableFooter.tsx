@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Send } from 'lucide-react';
 import { useContent } from '../hooks/useContent';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../i18n/config';
 import ContentEditor from './ContentEditor';
 import EditButton from './EditButton';
 import Logo from './Logo';
@@ -9,6 +10,7 @@ import Logo from './Logo';
 const EditableFooter = () => {
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const { isAdmin } = useAuth();
+  const { t, isRTL } = useTranslation();
   const { data: footerData, upsertContent: saveFooter } = useContent('footer_content', 'main');
 
   const defaultFooter = {
@@ -61,11 +63,11 @@ const EditableFooter = () => {
               </p>
 
               <div className="mb-8">
-                <h4 className="text-xl font-luxury-heading text-vibrant-orange-light mb-4">Stay Connected</h4>
+                <h4 className="text-xl font-luxury-heading text-vibrant-orange-light mb-4">{t('common.subscribe', 'Stay Connected')}</h4>
                 <div className="flex max-w-md">
                   <input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t('common.email')}
                     className="flex-1 px-6 py-4 bg-logo-navy-light/60 border-2 border-vibrant-orange/30 rounded-l-luxury text-cream-elegant placeholder-cream-elegant/60 focus:outline-none focus:border-vibrant-orange font-luxury-body backdrop-blur-luxury"
                   />
                   <button className="bg-gradient-to-r from-vibrant-orange to-vibrant-orange-light text-white px-8 py-4 rounded-r-luxury font-luxury-semibold hover:from-vibrant-orange-light hover:to-vibrant-orange transition-all duration-300 flex items-center">
@@ -91,32 +93,32 @@ const EditableFooter = () => {
             </div>
 
             <div>
-              <h3 className="text-xl font-luxury-heading text-vibrant-orange-light mb-8">Quick Links</h3>
+              <h3 className="text-xl font-luxury-heading text-vibrant-orange-light mb-8">{t('common.quickLinks', 'Quick Links')}</h3>
               <ul className="space-y-4">
-                <li><a href="/about" className="text-cream-elegant/80 hover:text-vibrant-orange-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">About Us</a></li>
-                <li><a href="/projects" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">Our Projects</a></li>
-                <li><a href="/events" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">Events</a></li>
-                <li><a href="/volunteer" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">Volunteer</a></li>
-                <li><a href="/contact" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">Contact Us</a></li>
+                <li><a href="/about" className="text-cream-elegant/80 hover:text-vibrant-orange-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">{t('navigation.about')}</a></li>
+                <li><a href="/projects" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">{t('navigation.projects')}</a></li>
+                <li><a href="/events" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">{t('navigation.events')}</a></li>
+                <li><a href="/volunteer" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">{t('navigation.volunteer')}</a></li>
+                <li><a href="/contact" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">{t('navigation.contact')}</a></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-xl font-luxury-heading text-gold-light mb-8">Get in Touch</h3>
+              <h3 className="text-xl font-luxury-heading text-gold-light mb-8">{t('common.getInTouch', 'Get in Touch')}</h3>
               <div className="space-y-6">
-                <div className="flex items-center space-x-4 group">
+                <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-4 group`}>
                   <div className="w-10 h-10 bg-gold-accent/20 rounded-full flex items-center justify-center group-hover:bg-gold-accent/30 transition-colors">
                     <Mail className="w-5 h-5 text-gold-light" />
                   </div>
                   <span className="text-cream-soft/80 font-luxury-body text-lg group-hover:text-cream-soft transition-colors">{footer.email}</span>
                 </div>
-                <div className="flex items-center space-x-4 group">
+                <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-4 group`}>
                   <div className="w-10 h-10 bg-gold-accent/20 rounded-full flex items-center justify-center group-hover:bg-gold-accent/30 transition-colors">
                     <Phone className="w-5 h-5 text-gold-light" />
                   </div>
                   <span className="text-cream-soft/80 font-luxury-body text-lg group-hover:text-cream-soft transition-colors">{footer.phone}</span>
                 </div>
-                <div className="flex items-center space-x-4 group">
+                <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-4 group`}>
                   <div className="w-10 h-10 bg-gold-accent/20 rounded-full flex items-center justify-center group-hover:bg-gold-accent/30 transition-colors">
                     <MapPin className="w-5 h-5 text-gold-light" />
                   </div>
