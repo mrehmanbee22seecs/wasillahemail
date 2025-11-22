@@ -16,24 +16,23 @@ type AsyncEffectCallback = () => Promise<void | (() => void)>;
    deps: DependencyList
  ): void {
    const isMountedRef = useRef(true);
-+  const runIdRef = useRef(0);
+   const runIdRef = useRef(0);
  
    useEffect(() => {
      isMountedRef.current = true;
-+    const runId = ++runIdRef.current;
+     const runId = ++runIdRef.current;
      let cleanup: void | (() => void);
  
      const executeEffect = async () => {
        try {
--        cleanup = await effect();
-+        const maybeCleanup = await effect();
-+        // Only accept cleanup from the latest run
-+        if (isMountedRef.current && runId === runIdRef.current) {
-+          cleanup = maybeCleanup;
-+        }
+         const maybeCleanup = await effect();
+         // Only accept cleanup from the latest run
+         if (isMountedRef.current && runId === runIdRef.current) {
+           cleanup = maybeCleanup;
+         }
        } catch (error) {
--        if (isMountedRef.current) {
-+        if (isMountedRef.current && runId === runIdRef.current) {
+
+         if (isMountedRef.current && runId === runIdRef.current) {
            console.error('Error in async effect:', error);
          }
        }
@@ -43,9 +42,9 @@ type AsyncEffectCallback = () => Promise<void | (() => void)>;
  
      return () => {
        isMountedRef.current = false;
--      if (typeof cleanup === 'function') {
-+      // Only run cleanup from the latest effect
-+      if (runId === runIdRef.current && typeof cleanup === 'function') {
+
+       // Only run cleanup from the latest effect
+       if (runId === runIdRef.current && typeof cleanup === 'function') {
          cleanup();
        }
      };
