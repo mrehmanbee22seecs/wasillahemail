@@ -3,7 +3,7 @@
  * Advanced filtering for project discovery
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Filter,
   Search,
@@ -123,11 +123,41 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
       filtered = filtered.filter(project => criteria.locations.includes(project.location));
     }
 
-    // Status filter
+    // Status filter - properly determine project status based on dates
     if (criteria.statuses.length > 0) {
       filtered = filtered.filter(project => {
-        const status = project.status === 'approved' ? 'ongoing' : project.status;
-        return criteria.statuses.includes(status);
+        // Determine actual project status based on dates
+        const now = new Date();
+        let actualStatus = 'ongoing'; // Default for approved projects
+        
+        // Only consider approved projects for status filtering
+        if (project.status !== 'approved') {
+          return false;
+        }
+        
+        // Check if project has end date and if it's completed
+        if (project.endDate) {
+          const endDate = typeof project.endDate === 'string' 
+            ? new Date(project.endDate)
+            : project.endDate.toDate?.() || new Date();
+          
+          if (endDate < now) {
+            actualStatus = 'completed';
+          }
+        }
+        
+        // Check if project hasn't started yet (upcoming)
+        if (project.startDate) {
+          const startDate = typeof project.startDate === 'string'
+            ? new Date(project.startDate)
+            : project.startDate.toDate?.() || new Date();
+          
+          if (startDate > now) {
+            actualStatus = 'upcoming';
+          }
+        }
+        
+        return criteria.statuses.includes(actualStatus);
       });
     }
 
