@@ -371,16 +371,16 @@ const trackReportGeneration = async (reportId: string): Promise<void> => {
   if (analyticsDoc.exists()) {
     await updateDoc(analyticsRef, {
       totalGenerations: increment(1),
-      lastGenerated: Timestamp.now()
+      lastGenerated: Timestamp.now(),
     });
   } else {
-    await updateDoc(analyticsRef, {
+    await setDoc(analyticsRef, {
       reportId,
       totalGenerations: 1,
       totalViews: 0,
       totalDownloads: 0,
       totalShares: 0,
-      lastGenerated: Timestamp.now()
+      lastGenerated: Timestamp.now(),
     });
   }
 };
