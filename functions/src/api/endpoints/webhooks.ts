@@ -198,6 +198,7 @@ export const getDeliveries = async (req: AuthRequest, res: Response) => {
     const deliveriesSnapshot = await db
       .collection('webhook_deliveries')
       .where('webhookId', '==', id)
+      .orderBy('webhookId')
       .orderBy('deliveredAt', 'desc')
       .limit(Number(limit))
       .get();
