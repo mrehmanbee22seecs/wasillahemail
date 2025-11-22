@@ -237,8 +237,7 @@ export const exportAndUploadReport = async (
    const effectiveFormat = isExcelAsCsv ? 'csv' : result.format;
    const filename = `reports/${userId}/${result.id}.${effectiveFormat}`;
    const storageRef = ref(storage, filename);
-  const storageRef = ref(storage, filename);
- const blob = new Blob([content], { type: getMimeType(effectiveFormat) });
+   const blob = new Blob([content], { type: getMimeType(effectiveFormat) });
  
    await uploadBytes(storageRef, blob);
    const downloadURL = await getDownloadURL(storageRef);
