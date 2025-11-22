@@ -58,26 +58,26 @@ describe('clientRateLimiter', () => {
   });
 
   describe('withRateLimit', () => {
-    it('executes function when under limit', () => {
-      const mockFn = jest.fn().mockReturnValue('result');
-      const limited = withRateLimit(mockFn, 'test-action', { limit: 3, window: 60000 });
+   it('executes function when under limit', async () => {
+    const mockFn = jest.fn().mockResolvedValue('result');
+    const limited = withRateLimit(mockFn, 'test-action', { maxRequests: 3, windowMs: 60000 });
       
-      const result = limited();
+      const result = await limited();
       
       expect(mockFn).toHaveBeenCalled();
       expect(result).toBe('result');
     });
 
-    it('throws error when over limit', () => {
-      const mockFn = jest.fn();
-      const config = { limit: 1, window: 60000 };
+    it('rejects when over limit', async () => {
+     const mockFn = jest.fn().mockResolvedValue(undefined);
+     const config = { maxRequests: 1, windowMs: 60000 };
       const limited = withRateLimit(mockFn, 'test-action', config);
       
-      limited();
-      
-      expect(() => limited()).toThrow('Rate limit exceeded');
-      expect(mockFn).toHaveBeenCalledTimes(1);
-    });
+      await limited();
+     await expect(limited()).rejects.toThrow('Rate limit exceeded');
+     expect(mockFn).toHaveBeenCalledTimes(1);
+   });
+ });
 
     it('works with async functions', async () => {
       const mockFn = jest.fn().mockResolvedValue('async result');
