@@ -9,12 +9,13 @@ import { EventSubmission } from '../types/submissions';
 const Events = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [approvedEvents, setApprovedEvents] = useState<EventSubmission[]>([]);
   const [loading, setLoading] = useState(true);
 
   const categories = ['all', 'Health', 'Education', 'Training', 'Environment', 'Community', 'Employment'];
-  const months = ['all', 'March', 'April', 'May', 'June'];
+  const months = ['all', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   useEffect(() => {
     fetchApprovedEvents();
@@ -124,18 +125,22 @@ Or create the index in Firebase Console.
   // Use only approved events (no static events)
   const allEvents = convertedApprovedEvents;
 
+  // Extract unique locations from approved events
+  const locations = ['all', ...Array.from(new Set(allEvents.map(event => event.location).filter(Boolean)))];
+
   const filteredEvents = allEvents.filter(event => {
     const eventDate = new Date(event.date);
     const eventMonth = eventDate.toLocaleString('default', { month: 'long' });
     
     const matchesCategory = selectedCategory === 'all' || event.category === selectedCategory;
     const matchesMonth = selectedMonth === 'all' || eventMonth === selectedMonth;
+    const matchesLocation = selectedLocation === 'all' || event.location === selectedLocation;
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.location.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return matchesCategory && matchesMonth && matchesSearch;
+    return matchesCategory && matchesMonth && matchesLocation && matchesSearch;
   });
 
   const getStatusColor = (status: string) => {
@@ -246,9 +251,9 @@ Or create the index in Firebase Console.
             <h2 className="text-2xl font-luxury-heading text-black">Filter Events</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Search */}
-            <div>
+            <div className="md:col-span-4">
               <label className="block font-luxury-medium text-black mb-2">Search Events</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -293,6 +298,22 @@ Or create the index in Firebase Console.
                 ))}
               </select>
             </div>
+
+            {/* Location Filter */}
+            <div className="md:col-span-2">
+              <label className="block font-luxury-medium text-black mb-2">Location</label>
+              <select
+                value={selectedLocation}
+                onChange={(e) => setSelectedLocation(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-vibrant-orange/30 rounded-luxury focus:outline-none focus:ring-2 focus:ring-vibrant-orange focus:border-vibrant-orange font-luxury-body"
+              >
+                {locations.map(location => (
+                  <option key={location} value={location}>
+                    {location === 'all' ? 'All Locations' : location}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Active Filters Display */}
@@ -319,6 +340,17 @@ Or create the index in Firebase Console.
                 </button>
               </span>
             )}
+            {selectedLocation !== 'all' && (
+              <span className="px-3 py-1 bg-vibrant-orange/20 text-vibrant-orange-dark rounded-full text-sm font-luxury-semibold">
+                Location: {selectedLocation}
+                <button 
+                  onClick={() => setSelectedLocation('all')}
+                  className="ml-2 text-vibrant-orange-dark hover:text-vibrant-orange"
+                >
+                  ×
+                </button>
+              </span>
+            )}
             {searchTerm && (
               <span className="px-3 py-1 bg-vibrant-orange/20 text-vibrant-orange-dark rounded-full text-sm font-luxury-semibold">
                 Search: "{searchTerm}"
@@ -329,6 +361,19 @@ Or create the index in Firebase Console.
                   ×
                 </button>
               </span>
+            )}
+            {(selectedCategory !== 'all' || selectedMonth !== 'all' || selectedLocation !== 'all' || searchTerm) && (
+              <button
+                onClick={() => {
+                  setSelectedCategory('all');
+                  setSelectedMonth('all');
+                  setSelectedLocation('all');
+                  setSearchTerm('');
+                }}
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-luxury-semibold hover:bg-gray-300"
+              >
+                Clear All
+              </button>
             )}
           </div>
 
