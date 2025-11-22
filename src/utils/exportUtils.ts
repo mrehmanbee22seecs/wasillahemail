@@ -207,9 +207,11 @@ export const exportReport = (
       break;
 
     case 'excel':
+      // The exportToExcel function currently returns CSV data.
+      // To avoid creating a corrupted .xlsx file, we use the .csv extension and mime type.
       content = exportToExcel(result.data, options);
-      mimeType = 'application/vnd.ms-excel';
-      extension = 'xlsx';
+      mimeType = 'text/csv';
+      extension = 'csv';
       break;
 
     case 'pdf':
