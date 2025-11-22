@@ -16,9 +16,7 @@ export const listProjects = async (req: AuthRequest, res: Response) => {
     const { page, perPage } = getPaginationParams(req.query);
     const { status, search, category } = req.query;
 
-    let query = db.collection('project_submissions').orderBy('submittedAt', 'desc');
-
-    // Apply filters
+    let query = db.collection('project_submissions').orderBy('submittedAt', 'desc').orderBy(admin.firestore.FieldPath.documentId());
     if (status) {
       query = query.where('status', '==', status);
     }
@@ -26,9 +24,24 @@ export const listProjects = async (req: AuthRequest, res: Response) => {
       query = query.where('category', '==', category);
     }
 
-    // Get documents with pagination
-    const offset = (page - 1) * perPage;
-    const snapshot = await query.limit(perPage + 1).offset(offset).get();
+    // Cursor-based pagination
+ const { cursor } = req.query as { cursor?: string };
+ if (cursor) {
+   const [submittedAtStr, docId] = Buffer.from(cursor, 'base64').toString('utf8').split('|');
+   const submittedAt = new Date(submittedAtStr);
+   query = query.startAfter(submittedAt, docId);
+ }
+ const snapshot = await query.limit(perPage + 1).get();
+ const docs = snapshot.docs.slice(0, perPage);
+ const items = docs.map(doc => ({ id: doc.id, ...doc.data() }));
+ const hasNext = snapshot.docs.length > perPage;
+ const nextCursor = hasNext
+   ? Buffer.from(`${docs[docs.length - 1].get('submittedAt').toDate().toISOString()}|${docs[docs.length - 1].id}`, 'utf8').toString('base64')
+   : undefined;
+ const pagination = calculatePagination(page, perPage);
+ pagination.hasNext = hasNext;
+ // attach cursor for client
+ return paginatedResponse(res, items, { ...pagination, nextCursor });
 
     const items = snapshot.docs.slice(0, perPage).map((doc) => ({
       id: doc.id,
