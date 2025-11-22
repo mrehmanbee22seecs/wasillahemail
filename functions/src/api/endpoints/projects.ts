@@ -27,32 +27,42 @@ export const listProjects = async (req: AuthRequest, res: Response) => {
     // Cursor-based pagination
  const { cursor } = req.query as { cursor?: string };
  if (cursor) {
-   const [submittedAtStr, docId] = Buffer.from(cursor, 'base64').toString('utf8').split('|');
-   const submittedAt = new Date(submittedAtStr);
-   query = query.startAfter(submittedAt, docId);
+    try {
+     const decoded = Buffer.from(cursor, 'base64').toString('utf8');
+     const [submittedAtStr, docId] = decoded.split('|');
+     const submittedAt = new Date(submittedAtStr);
+     if (!isNaN(submittedAt.getTime()) && docId) {
+       query = query.startAfter(submittedAt, docId);
+     }
+   } catch {
+     // Ignore invalid cursor; start from beginning
+   }
  }
  const snapshot = await query.limit(perPage + 1).get();
  const docs = snapshot.docs.slice(0, perPage);
- const items = docs.map(doc => ({ id: doc.id, ...doc.data() }));
+ const items = docs.map((doc) => ({ id: doc.id, ...doc.data() }));
  const hasNext = snapshot.docs.length > perPage;
- const nextCursor = hasNext
-   ? Buffer.from(`${docs[docs.length - 1].get('submittedAt').toDate().toISOString()}|${docs[docs.length - 1].id}`, 'utf8').toString('base64')
-   : undefined;
+    
+ let nextCursor: string | undefined;
+ if (hasNext) {
+   const lastDoc = docs[docs.length - 1];
+   const ts = lastDoc.get('submittedAt');
+   // handle Firestore Timestamp or Date
+   const date =
+     ts && typeof ts.toDate === 'function'
+       ? ts.toDate()
+       : ts instanceof Date
+       ? ts
+       : null;
+   if (date) {
+     nextCursor = Buffer.from(`${date.toISOString()}|${lastDoc.id}`, 'utf8').toString('base64');
+   }
+ }
  const pagination = calculatePagination(page, perPage);
  pagination.hasNext = hasNext;
- // attach cursor for client
+ 
  return paginatedResponse(res, items, { ...pagination, nextCursor });
 
-    const items = snapshot.docs.slice(0, perPage).map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    const hasNext = snapshot.docs.length > perPage;
-    const pagination = calculatePagination(page, perPage);
-    pagination.hasNext = hasNext;
-
-    return paginatedResponse(res, items, pagination);
   } catch (error) {
     console.error('List projects error:', error);
     return errorResponse(res, 'INTERNAL_ERROR', 'Failed to fetch projects', 500);
