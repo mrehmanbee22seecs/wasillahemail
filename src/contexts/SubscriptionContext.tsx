@@ -94,6 +94,7 @@ interface SubscriptionContextType {
   checkFeature: (feature: FeatureName) => boolean;
   getQuotaAlerts: () => QuotaAlert[];
   refreshUsage: () => Promise<void>;
+  refreshSubscription: () => Promise<void>; // Alias for refreshUsage
   upgradeToPremium: () => Promise<void>;
   downgradToFree: () => Promise<void>;
   getPlanConfig: (plan: SubscriptionPlan) => PlanConfig;
@@ -400,6 +401,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     checkFeature,
     getQuotaAlerts,
     refreshUsage,
+    refreshSubscription: refreshUsage, // Alias for refreshUsage
     upgradeToPremium,
     downgradToFree,
     getPlanConfig,
