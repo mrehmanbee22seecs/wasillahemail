@@ -274,27 +274,36 @@ export const decompressData = (compressed: string): string => {
 /**
  * Bulk export multiple reports
  */
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 export const bulkExport = async (
   reports: ReportResult[],
   format: ReportFormat,
   options: ExportOptions = {}
 ): Promise<void> => {
-  const { compression = false } = options;
+   const zip = new JSZip();
+  
+   reports.forEach((report, index) => {
+     const baseFilename = options.filename 
+       ? `${options.filename}_${index + 1}`
+       : report.reportName.replace(/\s+/g, '_');
+    
+     const extension = getFileExtension(format);
+     const finalFilename = `${baseFilename}.${extension}`;
 
-  reports.forEach((report, index) => {
-    const filename = options.filename 
-      ? `${options.filename}_${index + 1}`
-      : report.reportName;
-
-    exportReport(report, {
-      ...options,
-      format,
-      filename
-    });
-
-    // Small delay to prevent browser blocking multiple downloads
-    if (index < reports.length - 1) {
-      setTimeout(() => {}, 100);
+  let content: string;
+     switch (format) {
+       case 'csv': content = exportToCSV(report.data, options); break;
+       case 'json': content = exportToJSON(report.data, options); break;
+       case 'excel': content = exportToExcel(report.data, options); break;
+       case 'pdf': content = exportToPDF(report.data, options); break;
+       default: content = '';
+     }
+     
+     if (content) {
+       zip.file(finalFilename, content);
     }
   });
+const zipBlob = await zip.generateAsync({ type: 'blob' });
+   saveAs(zipBlob, `${options.filename || 'bulk-export'}.zip`);
 };
