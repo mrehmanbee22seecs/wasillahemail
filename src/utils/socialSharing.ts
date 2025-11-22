@@ -154,18 +154,34 @@ export const trackShare = (
 /**
  * Check if Web Share API is available
  */
-export const canUseWebShare = (): boolean => {
-  return typeof navigator !== 'undefined' && !!navigator.share;
+export const canUseWebShare = (data?: ShareData): boolean => {
+   if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
+   if (!window.isSecureContext) return false;
+   if (!navigator.share) return false;
+   if (navigator.canShare && data) {
+     try {
+       return navigator.canShare(data);
+     } catch {
+       return false;
+     }
+   }
+  return true;
 };
 
 /**
  * Share via Web Share API
  */
 export const shareViaWebAPI = async (content: { title: string; text?: string; url: string }): Promise<boolean> => {
-  if (!canUseWebShare()) {
+  const shareData: ShareData = { title: content.title, text: content.text, url: content.url };
+   if (!canUseWebShare(shareData)) {
     return false;
   }
-  return shareNative(content);
+   try {
+     await navigator.share(shareData);
+     return true;
+   } catch {
+     return false;
+   }
 };
 
 /**
