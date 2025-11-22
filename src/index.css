@@ -887,7 +887,9 @@ body {
   text-align: right;
 }
 
-[dir="rtl"] .flex {
+/* Only reverse flex direction for navigation and menu containers */
+[dir="rtl"] nav > *,
+[dir="rtl"] .flex-row-rtl {
   flex-direction: row-reverse;
 }
 

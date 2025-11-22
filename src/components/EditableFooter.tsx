@@ -63,7 +63,7 @@ const EditableFooter = () => {
               </p>
 
               <div className="mb-8">
-                <h4 className="text-xl font-luxury-heading text-vibrant-orange-light mb-4">{t('common.subscribe', 'Stay Connected')}</h4>
+                <h4 className="text-xl font-luxury-heading text-vibrant-orange-light mb-4">{t('common.subscribe')}</h4>
                 <div className="flex max-w-md">
                   <input
                     type="email"
@@ -93,7 +93,7 @@ const EditableFooter = () => {
             </div>
 
             <div>
-              <h3 className="text-xl font-luxury-heading text-vibrant-orange-light mb-8">{t('common.quickLinks', 'Quick Links')}</h3>
+              <h3 className="text-xl font-luxury-heading text-vibrant-orange-light mb-8">{t('common.quickLinks')}</h3>
               <ul className="space-y-4">
                 <li><a href="/about" className="text-cream-elegant/80 hover:text-vibrant-orange-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">{t('navigation.about')}</a></li>
                 <li><a href="/projects" className="text-cream-soft/80 hover:text-gold-light transition-colors duration-300 font-luxury-body text-lg hover:translate-x-2 inline-block transition-transform">{t('navigation.projects')}</a></li>
@@ -104,7 +104,7 @@ const EditableFooter = () => {
             </div>
 
             <div>
-              <h3 className="text-xl font-luxury-heading text-gold-light mb-8">{t('common.getInTouch', 'Get in Touch')}</h3>
+              <h3 className="text-xl font-luxury-heading text-gold-light mb-8">{t('common.getInTouch')}</h3>
               <div className="space-y-6">
                 <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-4 group`}>
                   <div className="w-10 h-10 bg-gold-accent/20 rounded-full flex items-center justify-center group-hover:bg-gold-accent/30 transition-colors">
