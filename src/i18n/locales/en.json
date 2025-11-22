@@ -55,7 +55,8 @@
     "settings": "Settings",
     "admin": "Admin",
     "logout": "Logout",
-    "donate": "Donate"
+    "donate": "Donate",
+    "upgrade": "Upgrade"
   },
   "auth": {
     "loginTitle": "Login to Your Account",

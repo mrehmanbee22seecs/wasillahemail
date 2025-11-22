@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { User, Calendar, Target, Heart, TrendingUp, Clock, MapPin, Users, Award, Settings, Bell, BookOpen, Activity, Star, ChevronRight, Filter, Search, Plus, FileText, Eye, CreditCard as Edit3, CheckCircle, Sparkles, Zap, Palette, Mail, RefreshCw, Lock, AlertCircle, GraduationCap, Shield, ArrowRight } from 'lucide-react';
+import { User, Calendar, Target, Heart, TrendingUp, Clock, MapPin, Users, Award, Settings, Bell, BookOpen, Activity, Star, ChevronRight, Filter, Search, Plus, FileText, Eye, CreditCard as Edit3, CheckCircle, Sparkles, Zap, Palette, Mail, RefreshCw, Lock, AlertCircle, GraduationCap, Shield, ArrowRight, Crown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { collection, query, where, getDocs, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { ProjectSubmission, EventSubmission, SubmissionStatus } from '../types/submissions';
@@ -39,6 +40,7 @@ type SubmissionWithType = (ProjectSubmission | EventSubmission) & {
 const Dashboard = () => {
   const { userData, currentUser, updatePassword, resetPassword, resendEmailVerification, calculateProfileCompletion, refreshUserData, userRole } = useAuth();
   const { currentTheme, setTheme, themes } = useTheme();
+  const { subscription, planConfig } = useSubscription();
   
   // Role-based dashboard routing
   // If user has a specific role, render their specialized dashboard
@@ -490,6 +492,50 @@ const Dashboard = () => {
                   {!userData.onboardingCompleted ? 'Complete Onboarding' : 'Complete Profile'}
                   <ArrowRight className="w-4 h-4" />
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Subscription Plan Card */}
+          {subscription && planConfig && (
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-logo-navy/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${
+                    planConfig.id === 'premium' 
+                      ? 'bg-purple-100' 
+                      : planConfig.id === 'professional'
+                      ? 'bg-blue-100'
+                      : 'bg-gray-100'
+                  }`}>
+                    <Crown className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                      planConfig.id === 'premium' 
+                        ? 'text-purple-600' 
+                        : planConfig.id === 'professional'
+                        ? 'text-blue-600'
+                        : 'text-gray-600'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-black">
+                      {planConfig.displayName} Plan
+                    </h3>
+                    <p className="text-xs sm:text-sm text-black/60">
+                      {planConfig.id === 'free' && 'Limited features - Upgrade for more'}
+                      {planConfig.id === 'professional' && 'Full access to professional features'}
+                      {planConfig.id === 'premium' && 'Unlimited access to all features'}
+                    </p>
+                  </div>
+                </div>
+                {planConfig.id === 'free' && (
+                  <Link
+                    to="/upgrade"
+                    className="btn-luxury-primary px-4 py-2 text-sm flex items-center gap-2 whitespace-nowrap"
+                  >
+                    Upgrade
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                )}
               </div>
             </div>
           )}
