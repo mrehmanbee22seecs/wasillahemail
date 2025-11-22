@@ -24,8 +24,12 @@ export const listNGOs = async (req: AuthRequest, res: Response) => {
       query = query.where('status', '==', status) as any;
     }
     if (verified !== undefined) {
-      query = query.where('verified', '==', verified === 'true') as any;
-    }
+      const v = String(verified).toLowerCase();
+   if (v !== 'true' && v !== 'false') {
+     return errorResponse(res, 'VALIDATION_ERROR', 'Invalid verified parameter. Use true or false.', 400);
+   }
+   query = query.where('verified', '==', v === 'true') as FirebaseFirestore.Query<FirebaseFirestore.DocumentData>;
+ }
     if (location) {
       query = query.where('location', '==', location) as any;
     }
