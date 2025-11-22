@@ -34,7 +34,17 @@ router.get('/:id', authenticate, dynamicRateLimit, getWebhook);
 router.post('/', authenticate, dynamicRateLimit, webhookValidation, createWebhook);
 
 // Update webhook - Authenticated
-router.patch('/:id', authenticate, dynamicRateLimit, updateWebhook);
+// Validation for webhook update
+const webhookUpdateValidation = [
+  body('url').optional().isURL().withMessage('Valid URL is required'),
+  body('events').optional().isArray({ min: 1 }).withMessage('At least one event is required'),
+  body('description').optional().trim(),
+  validateRequest,
+];
+
+// ...
+
+router.patch('/:id', authenticate, dynamicRateLimit, webhookUpdateValidation, updateWebhook);
 
 // Delete webhook - Authenticated
 router.delete('/:id', authenticate, dynamicRateLimit, deleteWebhook);
