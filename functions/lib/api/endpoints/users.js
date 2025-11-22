@@ -125,14 +125,18 @@ exports.updateUser = updateUser;
 const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
-        // Delete from Firestore
+        // Delete from Firebase Auth first to avoid orphaned auth users
+         await admin.auth().deleteUser(id);
+         // Then delete from Firestore
         await db.collection('users').doc(id).delete();
-        // Delete from Firebase Auth
-        await admin.auth().deleteUser(id);
+        
         return (0, responses_1.successResponse)(res, { id }, 'User deleted successfully');
-    }
-    catch (error) {
+    } catch (error) {
         console.error('Delete user error:', error);
+         // If Firestore deletion failed after Auth deletion, surface partial state
+         if (error && error.code === 5 /* Firestore NOT_FOUND or similar */) {
+             return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'User deleted from auth but not from database', 500);
+         }
         return (0, responses_1.errorResponse)(res, 'INTERNAL_ERROR', 'Failed to delete user', 500);
     }
 };
