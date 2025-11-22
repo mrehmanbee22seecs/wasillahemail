@@ -16,7 +16,8 @@ import {
   orderBy,
   limit,
   Timestamp,
-  increment
+  increment,
+  setDoc
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
@@ -369,23 +370,19 @@ export const createReportFromTemplate = async (
  */
 const trackReportGeneration = async (reportId: string): Promise<void> => {
   const analyticsRef = doc(db, ANALYTICS_COLLECTION, reportId);
-  const analyticsDoc = await getDoc(analyticsRef);
-
-  if (analyticsDoc.exists()) {
-    await updateDoc(analyticsRef, {
+  await setDoc(
+     analyticsRef,
+     {
+       reportId,
       totalGenerations: increment(1),
-      lastGenerated: Timestamp.now(),
-    });
-  } else {
-    await setDoc(analyticsRef, {
-      reportId,
-      totalGenerations: 1,
+      // Ensure other counters exist; merge will keep existing values
       totalViews: 0,
       totalDownloads: 0,
       totalShares: 0,
       lastGenerated: Timestamp.now(),
-    });
-  }
+    },
+     { merge: true }
+   );
 };
 
 /**
