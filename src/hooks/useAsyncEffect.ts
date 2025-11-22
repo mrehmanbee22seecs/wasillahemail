@@ -48,7 +48,7 @@ type AsyncEffectCallback = () => Promise<void | (() => void)>;
          cleanup();
        }
      };
-   }, deps);
+   }, [...deps, effect]);
  }
 
 /**
