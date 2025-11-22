@@ -8,7 +8,8 @@ import AdminPanel from './AdminPanel';
 import ContentEditor from './ContentEditor';
 import EditButton from './EditButton';
 import AuthModal from './AuthModal';
-import LanguageSwitcher from './LanguageSwitcher';
+// Language switcher disabled per user request
+// import LanguageSwitcher from './LanguageSwitcher';
 
 const EditableHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -97,8 +98,8 @@ const EditableHeader = () => {
                   </Link>
                 )
               ))}
-              {/* Language Switcher */}
-              <LanguageSwitcher />
+              {/* Language Switcher - Disabled per user request */}
+              {/* <LanguageSwitcher /> */}
               {/* Auth actions in the main menu (desktop) */}
               {currentUser && !isGuest ? (
                 <button 
