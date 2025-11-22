@@ -301,11 +301,14 @@ export const getTemplates = async (userId?: string): Promise<ReportTemplate[]> =
     const publicSnapshot = await getDocs(q);
 
     const allDocs = [...publicSnapshot.docs, ...userSnapshot.docs];
-    const uniqueDocs = Array.from(new Set(allDocs.map(d => d.id))).map(id =>
-      allDocs.find(d => d.id === id)!
-    );
+    const uniqueDocsMap = new Map();
+ allDocs.forEach(doc => {
+   if (!uniqueDocsMap.has(doc.id)) {
+     uniqueDocsMap.set(doc.id, doc);
+   }
+ });
 
-    return uniqueDocs.map(doc => ({
+    return Array.from(uniqueDocsMap.values()).map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate(),
