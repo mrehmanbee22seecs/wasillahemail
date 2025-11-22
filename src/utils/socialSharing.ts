@@ -191,6 +191,9 @@ export const openShareLink = (
   platform: 'whatsapp' | 'facebook' | 'twitter' | 'linkedin' | 'email',
   content: { title: string; text?: string; url: string; hashtags?: string[]; via?: string }
 ): void => {
+  if (!content || !content.title) return;
+   if (platform !== 'email' && (!content.url || typeof content.url !== 'string')) return;
+
   const shareData: ShareData = {
     title: content.title,
     text: content.text,
@@ -201,15 +204,19 @@ export const openShareLink = (
 
   switch (platform) {
     case 'whatsapp':
+      if (!shareData.url) return;
       shareOnWhatsApp(shareData);
       break;
     case 'facebook':
+      if (!shareData.url) return;
       shareOnFacebook(shareData);
       break;
     case 'twitter':
+      if (!shareData.url) return;
       shareOnTwitter(shareData);
       break;
     case 'linkedin':
+      if (!shareData.url) return;
       shareOnLinkedIn(shareData);
       break;
     case 'email':
