@@ -23,6 +23,7 @@ export interface ProjectFilterCriteria {
   categories: string[];
   locations: string[];
   statuses: string[];
+  months: string[];
   dateRange: {
     start: string;
     end: string;
@@ -57,6 +58,7 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     categories: [],
     locations: [],
     statuses: [],
+    months: [],
     dateRange: { start: '', end: '' },
     skills: [],
     sortBy: 'newest',
@@ -121,6 +123,18 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     // Location filter
     if (criteria.locations.length > 0) {
       filtered = filtered.filter(project => criteria.locations.includes(project.location));
+    }
+
+    // Month filter
+    if (criteria.months.length > 0) {
+      filtered = filtered.filter(project => {
+        if (!project.startDate) return false;
+        const startDate = typeof project.startDate === 'string' 
+          ? new Date(project.startDate)
+          : project.startDate.toDate?.() || new Date();
+        const projectMonth = startDate.toLocaleString('default', { month: 'long' });
+        return criteria.months.includes(projectMonth);
+      });
     }
 
     // Status filter - properly determine project status based on dates
@@ -257,6 +271,15 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     }));
   };
 
+  const toggleMonth = (month: string) => {
+    setCriteria(prev => ({
+      ...prev,
+      months: prev.months.includes(month)
+        ? prev.months.filter(m => m !== month)
+        : [...prev.months, month],
+    }));
+  };
+
   const toggleSkill = (skill: string) => {
     setCriteria(prev => ({
       ...prev,
@@ -272,6 +295,7 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
       categories: [],
       locations: [],
       statuses: [],
+      months: [],
       dateRange: { start: '', end: '' },
       skills: [],
       sortBy: 'newest',
@@ -283,6 +307,7 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     criteria.categories.length +
     criteria.locations.length +
     criteria.statuses.length +
+    criteria.months.length +
     (criteria.dateRange.start ? 1 : 0) +
     (criteria.dateRange.end ? 1 : 0) +
     criteria.skills.length +
@@ -379,6 +404,29 @@ const ProjectFilters: React.FC<ProjectFiltersProps> = ({
                   }`}
                 >
                   {location}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Months */}
+          <div>
+            <label className="block font-luxury-medium text-logo-navy mb-3 flex items-center">
+              <Calendar className="w-4 h-4 mr-2" />
+              Start Month
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                <button
+                  key={month}
+                  onClick={() => toggleMonth(month)}
+                  className={`px-4 py-2 rounded-luxury border-2 transition-colors ${
+                    criteria.months.includes(month)
+                      ? 'bg-vibrant-orange text-white border-vibrant-orange'
+                      : 'bg-white text-logo-navy border-logo-navy/30 hover:border-vibrant-orange/50'
+                  }`}
+                >
+                  {month}
                 </button>
               ))}
             </div>
