@@ -158,6 +158,13 @@ const applyFilters = (data: any[], filters: ReportFilter[]): any[] => {
     return filters.every(filter => {
       const value = getNestedValue(item, filter.field);
 
+      // Handle null/undefined values
+      if (value === null || value === undefined) {
+        // For 'ne' (not equal) and 'contains' operations, null/undefined should be excluded
+        // For other operations, exclude items with null/undefined values
+        return filter.operator === 'ne';
+      }
+
       switch (filter.operator) {
         case 'eq':
           return value === filter.value;
