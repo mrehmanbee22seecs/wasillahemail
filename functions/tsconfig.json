@@ -3,6 +3,7 @@
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["es2020"],
+    "types": ["node"],
     "rootDir": "src",
     "outDir": "lib",
     "esModuleInterop": true,
@@ -10,8 +11,7 @@
     "skipLibCheck": true,
     "strict": false,
     "sourceMap": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": ["node", "jest"]
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "lib"]

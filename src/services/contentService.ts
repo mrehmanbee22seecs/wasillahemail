@@ -18,7 +18,7 @@ import {
   Timestamp,
   increment,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../config/firebase';
 import type { Content, ContentVersion, ContentFilters, ContentStatus } from '../types/cms';
 
 const CONTENT_COLLECTION = 'content';

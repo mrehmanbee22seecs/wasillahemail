@@ -150,3 +150,77 @@ export const trackShare = (
     });
   }
 };
+
+/**
+ * Check if Web Share API is available
+ */
+export const canUseWebShare = (data?: ShareData): boolean => {
+   if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
+   if (!window.isSecureContext) return false;
+   if (!navigator.share) return false;
+   if (navigator.canShare && data) {
+     try {
+       return navigator.canShare(data);
+     } catch {
+       return false;
+     }
+   }
+  return true;
+};
+
+/**
+ * Share via Web Share API
+ */
+export const shareViaWebAPI = async (content: { title: string; text?: string; url: string }): Promise<boolean> => {
+  const shareData: ShareData = { title: content.title, text: content.text, url: content.url };
+   if (!canUseWebShare(shareData)) {
+    return false;
+  }
+   try {
+     await navigator.share(shareData);
+     return true;
+   } catch {
+     return false;
+   }
+};
+
+/**
+ * Open share link for a specific platform
+ */
+export const openShareLink = (
+  platform: 'whatsapp' | 'facebook' | 'twitter' | 'linkedin' | 'email',
+  content: { title: string; text?: string; url: string; hashtags?: string[]; via?: string }
+): void => {
+  if (!content || !content.title) return;
+   if (platform !== 'email' && (!content.url || typeof content.url !== 'string')) return;
+
+  const shareData: ShareData = {
+    title: content.title,
+    text: content.text,
+    url: content.url,
+    hashtags: content.hashtags,
+    via: content.via,
+  };
+
+  switch (platform) {
+    case 'whatsapp':
+      if (!shareData.url) return;
+      shareOnWhatsApp(shareData);
+      break;
+    case 'facebook':
+      if (!shareData.url) return;
+      shareOnFacebook(shareData);
+      break;
+    case 'twitter':
+      if (!shareData.url) return;
+      shareOnTwitter(shareData);
+      break;
+    case 'linkedin':
+      if (!shareData.url) return;
+      shareOnLinkedIn(shareData);
+      break;
+    case 'email':
+      shareViaEmail(shareData);
+      break;
+  }
+};

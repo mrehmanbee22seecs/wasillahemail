@@ -534,6 +534,61 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // === CMS COLLECTIONS ===
+    
+    // Content - Public read for published, authenticated write
+    match /content/{contentId} {
+      // Anyone can read published content
+      allow read: if resource.data.status == 'published' || isAuthenticated();
+      // Authenticated users can create drafts
+      allow create: if isAuthenticated();
+      // Authors and admins can update their content
+      allow update: if isAuthenticated() &&
+        (request.auth.uid == resource.data.authorId || isAdmin());
+      // Only admins can delete content
+      allow delete: if isAdmin();
+    }
+
+    // Content Versions - Authors and admins only
+    match /content_versions/{versionId} {
+      // Authors and admins can read versions
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == resource.data.authorId || isAdmin());
+      // System can create versions
+      allow create: if isAuthenticated();
+      // Only admins can update versions
+      allow update: if isAdmin();
+      // Only admins can delete versions
+      allow delete: if isAdmin();
+    }
+
+    // Media Library - Authenticated access
+    match /media/{mediaId} {
+      // Anyone can read media (public URLs)
+      allow read: if true;
+      // Authenticated users can upload
+      allow create: if isAuthenticated();
+      // Uploaders and admins can update metadata
+      allow update: if isAuthenticated() &&
+        (request.auth.uid == resource.data.uploaderId || isAdmin());
+      // Uploaders and admins can delete
+      allow delete: if isAuthenticated() &&
+        (request.auth.uid == resource.data.uploaderId || isAdmin());
+    }
+
+    // Content Templates - Authenticated read, admin write
+    match /content_templates/{templateId} {
+      // Authenticated users can read templates
+      allow read: if isAuthenticated();
+      // Authenticated users can create templates
+      allow create: if isAuthenticated();
+      // Template creators and admins can update
+      allow update: if isAuthenticated() &&
+        (request.auth.uid == resource.data.authorId || isAdmin());
+      // Only admins can delete templates
+      allow delete: if isAdmin();
+    }
+
     match /{document=**} { allow read, write: if false; }
   }
 }

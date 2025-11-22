@@ -131,7 +131,8 @@ export const getUserAnalytics = async (): Promise<UserAnalyticsData> => {
 export const getProjectAnalytics = async (): Promise<ProjectAnalyticsData> => {
   try {
     const projectsRef = collection(db, 'project_submissions');
-    const projectsSnapshot = await getDocs(projectsRef);
+    const projectsQuery = query(projectsRef, limit(1000));
+    const projectsSnapshot = await getDocs(projectsQuery);
     
     const monthAgo = getDateRange(30);
     
