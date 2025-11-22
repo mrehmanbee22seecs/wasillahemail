@@ -104,7 +104,17 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 
 export const deleteUser = async (req: AuthRequest, res: Response) => {
   try {
+    // Admin-only operation
+    if (!req.isAdmin) {
+      return errorResponse(res, 'FORBIDDEN', 'Admin access required to delete users', 403);
+    }
+
     const { id } = req.params;
+
+    // Prevent admin from deleting their own account
+    if (id === req.userId) {
+      return errorResponse(res, 'FORBIDDEN', 'Admins cannot delete their own accounts', 403);
+    }
 
     // Delete from Firestore
     await db.collection('users').doc(id).delete();
